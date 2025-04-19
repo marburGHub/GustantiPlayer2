@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gustanti Player</title>
+  <style>
+    :root {
+      --bg: #f9f9f9;
+      --fg: #222;
+      --muted: #555;
+      --accent: #007acc;
+      --card-bg: #fff;
+      --shadow: rgba(0,0,0,0.1);
+    }
+    body.dark {
+      --bg: #181818;
+      --fg: #eee;
+      --muted: #aaa;
+      --accent: #3399ff;
+      --card-bg: #252525;
+      --shadow: rgba(0,0,0,0.6);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:sans-serif;background:var(--bg);color:var(--fg);display:flex;align-items:center;justify-content:center;min-height:100vh;transition:background .3s,color .3s}
+    .player{width:100%;max-width:400px;background:var(--card-bg);border-radius:12px;box-shadow:0 4px 20px var(--shadow);overflow:hidden}
+    .cover{position:relative}
+    .cover img{width:100%;display:block}
+    .btn-theme{position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.5em;cursor:pointer;color:var(--fg)}
+    .info{padding:16px;text-align:center}
+    .info h1{font-size:1.2em;line-height:1.4}
+    .info p{font-size:.9em;color:var(--muted);margin-top:4px}
+    .seek{padding:0 16px}
+    .seek input[type=range]{width:100%;-webkit-appearance:none;height:4px;background:var(--muted);border-radius:2px;cursor:pointer}
+    .seek input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;margin-top:-5px}
+    .times{display:flex;justify-content:space-between;font-size:.8em;color:var(--muted);padding:4px 16px}
+    .controls{display:flex;justify-content:center;gap:16px;padding:12px}
+    .controls button{background:none;border:none;font-size:1.8em;cursor:pointer;color:var(--muted);transition:color .2s}
+    .controls button:hover{color:var(--accent)}
+    .playlist{padding:16px;list-style:none;max-height:160px;overflow-y:auto;border-top:1px solid var(--muted)}
+    .playlist li{padding:8px;cursor:pointer;border-radius:6px;transition:background .2s}
+    .playlist li:hover{background:var(--muted);color:#fff}
+    .playlist li.active{background:var(--accent);color:#fff;font-weight:bold}
+    .lyrics{padding:16px;border-top:1px solid var(--muted);display:none;height:200px;overflow-y:auto;font-size:.9em;line-height:1.4}
+    .lyrics.show{display:block}
+    .btn-lyrics{background:none;border:none;color:var(--muted);font-size:1em;cursor:pointer;margin-top:8px;transition:color .2s}
+    .btn-lyrics:hover{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="player" role="region" aria-label="Audio Player">
+    <div class="cover">
+      <img id="coverArt" src="default-cover.png" alt="Copertina album">
+      <button class="btn-theme" id="themeToggle" aria-label="Cambia tema">🌙</button>
+    </div>
+    <div class="info">
+      <h1 id="trackTitle">Caricamento...</h1>
+      <p id="trackAlbum">---</p>
+      <button class="btn-lyrics" id="toggleLyrics">Mostra testi</button>
+    </div>
+    <div class="seek">
+      <input type="range" id="seekBar" value="0" min="0">
+    </div>
+    <div class="times"><span id="currentTime">0:00</span><span id="duration">0:00</span></div>
+    <div class="controls">
+      <button id="prev" aria-label="Traccia precedente">⏮</button>
+      <button id="playPause" aria-label="Play/Pausa">▶️</button>
+      <button id="next" aria-label="Traccia successiva">⏭</button>
+    </div>
+    <ul class="playlist" id="playlist"></ul>
+    <div class="lyrics" id="lyrics"></div>
+  </div>
+  <audio id="audio" preload="metadata"></audio>
+
+  <script>
+  // --- Dati tracce con percorsi file testi ---
+  const tracks = [
+    {src:'audio/1 - Intro.mp3', title:'Intro', album:'Gustanti Vol.1', lyricsPath:'lyrics/1 - Intro.txt'},
+    {src:'audio/2 - La Forza Gentile.mp3', title:'La Forza Gentile', album:'Gustanti Vol.1', lyricsPath:'lyrics/2 - La Forza Gentile.txt'},
+    {src:'audio/3 - Vineyard Driver.mp3', title:'Vineyard Driver', album:'Gustanti Vol.1', lyricsPath:'lyrics/3 - Vineyard Driver.txt'},
+    {src:'audio/4 - Giardino dei colori.mp3', title:'Giardino dei colori', album:'Gustanti Vol.1', lyricsPath:'lyrics/4 - Giardino dei colori.txt'},
+    {src:"audio/5 - L'imbianchino e il campione.mp3", title:"L'imbianchino e il campione", album:'Gustanti Vol.1', lyricsPath:"lyrics/5 - L'imbianchino e il campione.txt"},
+    {src:"audio/6 - L'Alchimista dei Sensi.mp3", title:"L'Alchimista dei Sensi", album:'Gustanti Vol.1', lyricsPath:"lyrics/6 - L'Alchimista dei Sensi.txt"},
+    {src:'audio/7 - Digital Renaissance Man.mp3', title:'Digital Renaissance Man', album:'Gustanti Vol.1', lyricsPath:'lyrics/7 - Digital Renaissance Man.txt'},
+    {src:'audio/8 - Gustanti Viaggiatori.mp3', title:'Gustanti Viaggiatori', album:'Gustanti Vol.1', lyricsPath:'lyrics/8 - Gustanti Viaggiatori.txt'}
+  ];
+
+  let idx = 0;
+  const audio = document.getElementById('audio');
+  const elems = {
+    cover: document.getElementById('coverArt'),
+    title: document.getElementById('trackTitle'),
+    album: document.getElementById('trackAlbum'),
+    seek: document.getElementById('seekBar'),
+    curr: document.getElementById('currentTime'),
+    dur: document.getElementById('duration'),
+    btnPlay: document.getElementById('playPause'),
+    btnPrev: document.getElementById('prev'),
+    btnNext: document.getElementById('next'),
+    pl: document.getElementById('playlist'),
+    lyrics: document.getElementById('lyrics'),
+    btnLyrics: document.getElementById('toggleLyrics'),
+    theme: document.getElementById('themeToggle')
+  };
+
+  function load(i) {
+    idx = i;
+    const t = tracks[i];
+    audio.src = t.src;
+    elems.title.textContent = t.title;
+    elems.album.textContent = t.album;
+    elems.pl.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+    elems.pl.children[i].classList.add('active');
+    resetSeek();
+
+    elems.lyrics.textContent = 'Caricamento testi...';
+    fetch(t.lyricsPath)
+      .then(res => {
+        if (!res.ok) throw new Error('File non trovato');
+        return res.text();
+      })
+      .then(text => { elems.lyrics.textContent = text; })
+      .catch(() => { elems.lyrics.textContent = 'Testi non disponibili.'; });
+  }
+
+  function play() {
+    audio.play(); elems.btnPlay.textContent = '⏸️';
+  }
+  function pause() {
+    audio.pause(); elems.btnPlay.textContent = '▶️';
+  }
+  function togglePlay() { audio.paused ? play() : pause(); }
+  function next() { load((idx + 1) % tracks.length); play(); }
+  function prev() { load((idx - 1 + tracks.length) % tracks.length); play(); }
+  function updateSeek() {
+    elems.seek.max = audio.duration;
+    elems.seek.value = audio.currentTime;
+    elems.curr.textContent = format(audio.currentTime);
+    elems.dur.textContent = format(audio.duration);
+  }
+  function format(s) {
+    if (isNaN(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + (sec < 10 ? '0' + sec : sec);
+  }
+  function resetSeek() {
+    elems.curr.textContent = '0:00';
+    elems.dur.textContent = '0:00';
+    elems.seek.value = 0;
+  }
+  function toggleLyrics() {
+    elems.lyrics.classList.toggle('show');
+    elems.btnLyrics.textContent = elems.lyrics.classList.contains('show') ? 'Nascondi testi' : 'Mostra testi';
+  }
+  function initPlaylist() {
+    tracks.forEach((t, i) => {
+      const li = document.createElement('li');
+      li.textContent = (i + 1) + '. ' + t.title;
+      li.addEventListener('click', () => { load(i); play(); });
+      elems.pl.appendChild(li);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initPlaylist();
+    load(0);
+    elems.btnPlay.addEventListener('click', togglePlay);
+    elems.btnNext.addEventListener('click', next);
+    elems.btnPrev.addEventListener('click', prev);
+    audio.addEventListener('timeupdate', updateSeek);
+    audio.addEventListener('loadedmetadata', updateSeek);
+    elems.seek.addEventListener('input', () => { audio.currentTime = elems.seek.value; });
+    elems.btnLyrics.addEventListener('click', toggleLyrics);
+    elems.theme.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      elems.theme.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    });
+  });
+  </script>
+</body>
+</html>
