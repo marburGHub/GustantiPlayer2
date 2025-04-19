@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gustanti Player</title>
   <style>
-    /* --- Colori e variabili --- */
+    /* Variabili di tema */
     :root {
       --bg: #f9f9f9;
       --fg: #222;
@@ -24,142 +24,100 @@
       --card-bg: #252525;
       --shadow: rgba(0,0,0,0.6);
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
       font-family: 'Segoe UI', sans-serif;
-      background:var(--bg);
-      color:var(--fg);
-      display:flex;justify-content:center;align-items:center;
-      min-height:100vh;
-      transition:background .3s, color .3s;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; transition: background .3s, color .3s;
     }
     .player {
-      width:100%;max-width:420px;
-      background:var(--card-bg);
-      border-radius:var(--radius);
-      box-shadow:0 8px 24px var(--shadow);
-      overflow:hidden;
+      width: 100%; max-width: 420px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px var(--shadow);
+      overflow: hidden;
     }
     .cover img {
-      width:100%;height:auto;display:block;
+      width: 100%; display: block;
     }
     .info {
-      padding:20px;
-      text-align:center;
+      padding: 20px; text-align: center;
     }
-    .info h1 {
-      font-size:1.4em;line-height:1.2;
-    }
-    .info p {
-      font-size:1em;color:var(--muted);
-      margin:4px 0;
-    }
+    .info h1 { font-size: 1.4em; margin-bottom: 4px; }
+    .info p { color: var(--muted); margin-bottom: 8px; }
     .btn-lyrics {
-      background:none;border:none;color:var(--accent);
-      font-size:.9em;cursor:pointer;margin-top:8px;
-      text-decoration:underline;
+      background: none; border: none;
+      color: var(--accent); cursor: pointer;
+      text-decoration: underline; font-size: .9em;
     }
-    .seek {
-      padding:0 20px;
-    }
+    .seek { padding: 0 20px; }
     input[type=range] {
-      width:100%;
-      -webkit-appearance:none;
-      appearance:none;
-      height:var(--track-height);
-      background:var(--muted);
-      border-radius:2px;
-      cursor:pointer;
-      position:relative;
+      width: 100%; -webkit-appearance: none;
+      height: var(--track-height);
+      background: var(--muted);
+      border-radius: 2px; cursor: pointer;
     }
     input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance:none;
-      appearance:none;
-      width:var(--thumb-size);
-      height:var(--thumb-size);
-      border-radius:50%;
-      background:var(--accent);
-      cursor:pointer;
-      box-shadow:0 2px 4px rgba(0,0,0,0.2);
-      transition:transform .1s;
+      -webkit-appearance: none;
+      width: var(--thumb-size); height: var(--thumb-size);
+      background: var(--accent);
+      border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      cursor: pointer; transition: transform .1s;
     }
-    input[type=range]:active::-webkit-slider-thumb {
-      transform:scale(1.2);
-    }
+    input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
     .times {
-      display:flex;justify-content:space-between;
-      font-size:.8em;color:var(--muted);
-      padding:4px 20px 12px;
+      display: flex; justify-content: space-between;
+      font-size: .8em; color: var(--muted);
+      padding: 4px 20px 12px;
     }
     .controls {
-      display:flex;justify-content:center;align-items:center;
-      gap:24px;padding:12px 0;
-      background:var(--card-bg);
-      position:relative;
+      position: relative;
+      display: flex; justify-content: center; align-items: center;
+      gap: 24px; padding: 12px 0; background: var(--card-bg);
     }
     .controls button {
-      background:none;border:none;
-      width:44px;height:44px;
-      display:flex;align-items:center;justify-content:center;
-      cursor:pointer;
-      transition:transform .1s, color .2s;
-      color:var(--muted);
-      position:relative;
-      overflow:hidden;
-      border-radius:50%;
+      background: none; border: none;
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted);
+      transition: transform .1s, color .2s;
+      border-radius: 50%;
     }
-    .controls button:focus {
-      outline:2px solid var(--accent);
-    }
-    .controls button:hover {
-      color:var(--accent);
-      transform:scale(1.1);
-    }
+    .controls button:focus { outline: 2px solid var(--accent); }
+    .controls button:hover { color: var(--accent); transform: scale(1.1); }
     .controls .theme-toggle {
-      width:36px;height:36px;
-      position:absolute;top:50%;right:16px;
-      transform:translateY(-50%);
-      background:none;
-      border:none;
-      color:var(--muted);
-      transition:color .2s;
-    }
-    .controls .theme-toggle:hover {
-      color:var(--accent);
+      position: absolute; top: 50%; right: 16px;
+      transform: translateY(-50%);
+      width: 36px; height: 36px;
+      color: var(--muted);
     }
     .playlist {
-      list-style:none;
-      max-height:160px;overflow-y:auto;
-      border-top:1px solid var(--track-height);
+      list-style: none; max-height: 160px;
+      overflow-y: auto; border-top: 1px solid var(--track-height);
     }
     .playlist li {
-      padding:10px 20px;
-      cursor:pointer;
-      transition:background .2s;
+      padding: 10px 20px; cursor: pointer;
+      transition: background .2s;
     }
-    .playlist li:hover {
-      background:var(--muted);
-      color:#fff;
-    }
-    .playlist li.active {
-      background:var(--accent);
-      color:#fff;font-weight:bold;
-    }
+    .playlist li:hover { background: var(--muted); color: #fff; }
+    .playlist li.active { background: var(--accent); color: #fff; }
     .lyrics {
-      padding:16px 20px;
-      border-top:1px solid var(--track-height);
-      display:none;
-      height:200px;overflow-y:auto;
-      background:var(--card-bg);
-      font-size:.9em;line-height:1.4;
+      display: none;
+      padding: 16px 20px;
+      border-top: 1px solid var(--track-height);
+      background: var(--card-bg);
+      font-size: .9em; line-height: 1.4;
+      max-height: 200px; overflow-y: auto;
     }
-    .lyrics.show { display:block }
+    .lyrics.show { display: block; }
   </style>
 </head>
 <body>
   <div class="player" role="region" aria-label="Audio Player">
     <div class="cover">
-      <img id="coverArt" src="default-cover.png" alt="Copertina album">
+      <img id="coverArt" src="default-cover.png" alt="Copertina">
     </div>
     <div class="info">
       <h1 id="trackTitle">Caricamento...</h1>
@@ -167,7 +125,7 @@
       <button id="toggleLyrics" class="btn-lyrics">Mostra testi</button>
     </div>
     <div class="seek">
-      <input type="range" id="seekBar" value="0" min="0">
+      <input type="range" id="seekBar" min="0" value="0">
     </div>
     <div class="times">
       <span id="currentTime">0:00</span>
@@ -178,8 +136,8 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 4l-12 8 12 8V4z"/></svg>
       </button>
       <button id="playPauseBtn" aria-label="Play/Pausa">
-        <svg xmlns="http://www.w3.org/2000/svg" id="playIcon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3v18l15-9L5 3z"/></svg>
-        <svg xmlns="http://www.w3.org/2000/svg" id="pauseIcon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+        <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3v18l15-9L5 3z"/></svg>
+        <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
       </button>
       <button id="nextBtn" aria-label="Successiva">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 4l12 8-12 8V4z"/></svg>
@@ -188,13 +146,43 @@
         <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/></svg>
         <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
       </button>
-    </div>
+    </div>  
     <ul class="playlist" id="playlist"></ul>
     <div class="lyrics" id="lyrics"></div>
   </div><audio id="audioPlayer" preload="metadata"></audio>
 
-  <script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>  <script>
+    const defaultCover = 'default-cover.png';
     const tracks = [
-      {src:'audio/1 - Intro.mp3', title:'Intro', album:'Gustanti Vol.1', cover:'covers/1 - Intro.png', lyricsPath:'lyrics/1 - Intro.txt'},
-      {src:'audio/2 - La Forza Gentile.mp3', title:'La Forza Gentile', album:'Gustanti Vol.1', cover:'covers/2 - La Forza Gentile.png', lyricsPath:'lyrics/2 - La Forza Gentile.txt'},
-      {src:'audio/3 - Vineyard Driver.mp3', title:'Vin
+      { src: 'audio/1 - Intro.mp3', lyrics: 'lyrics/1 - Intro.txt' },
+      { src: 'audio/2 - La Forza Gentile.mp3', lyrics: 'lyrics/2 - La Forza Gentile.txt' },
+      { src: 'audio/3 - Vineyard Driver.mp3', lyrics: 'lyrics/3 - Vineyard Driver.txt' },
+      { src: 'audio/4 - Giardino dei colori.mp3', lyrics: 'lyrics/4 - Giardino dei colori.txt' },
+      { src: "audio/5 - L'imbianchino e il campione.mp3", lyrics: "lyrics/5 - L'imbianchino e il campione.txt" },
+      { src: "audio/6 - L'Alchimista dei Sensi.mp3", lyrics: "lyrics/6 - L'Alchimista dei Sensi.txt" },
+      { src: 'audio/7 - Digital Renaissance Man.mp3', lyrics: 'lyrics/7 - Digital Renaissance Man.txt' },
+      { src: 'audio/8 - Gustanti Viaggiatori.mp3', lyrics: 'lyrics/8 - Gustanti Viaggiatori.txt' }
+    ];
+    let currentIndex = 0;
+    const elems = {
+      cover: document.getElementById('coverArt'),
+      title: document.getElementById('trackTitle'),
+      album: document.getElementById('trackAlbum'),
+      seek: document.getElementById('seekBar'),
+      currentTime: document.getElementById('currentTime'),
+      duration: document.getElementById('duration'),
+      playPause: document.getElementById('playPauseBtn'),
+      prev: document.getElementById('prevBtn'),
+      next: document.getElementById('nextBtn'),
+      playlist: document.getElementById('playlist'),
+      lyricsContainer: document.getElementById('lyrics'),
+      toggleLyricsBtn: document.getElementById('toggleLyrics'),
+      sunIcon: document.getElementById('sunIcon'),
+      moonIcon: document.getElementById('moonIcon'),
+      themeToggle: document.getElementById('themeToggle'),
+      audio: document.getElementById('audioPlayer')
+    };
+    function init() {
+      tracks.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.textContent =
