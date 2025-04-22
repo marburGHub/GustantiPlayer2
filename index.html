@@ -78,9 +78,8 @@
       font-size: 1rem;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.5/dist/jsmediatags.min.js"></script>
 </head>
-<body>
+<body class="">
   <button id="theme-toggle">🌓</button>
   <div id="player">
     <img id="cover" src="default-cover.png" alt="Cover">
@@ -109,39 +108,42 @@
 
   <audio id="audio"></audio>
 
-  <script>
+  <!-- carichiamo music-metadata-browser -->
+  <script type="module">
+    import * as mm from 'https://cdn.jsdelivr.net/npm/music-metadata-browser/dist/music-metadata-browser.esm.js';
+
     const tracks = [
-      { src: 'audio/1 - Intro.mp3', lyrics: 'lyrics/1 - Intro.txt' },
+      { src: 'audio/1 - Intro.mp3',       lyrics: 'lyrics/1 - Intro.txt' },
       { src: 'audio/2 - La Forza Gentile.mp3', lyrics: 'lyrics/2 - La Forza Gentile.txt' },
-      { src: 'audio/3 - Vineyard Driver.mp3', lyrics: 'lyrics/3 - Vineyard Driver.txt' },
+      { src: 'audio/3 - Vineyard Driver.mp3',  lyrics: 'lyrics/3 - Vineyard Driver.txt' },
       { src: 'audio/4 - Giardino dei colori.mp3', lyrics: 'lyrics/4 - Giardino dei colori.txt' },
       { src: "audio/5 - L'imbianchino e il campione.mp3", lyrics: "lyrics/5 - L'imbianchino e il campione.txt" },
       { src: "audio/6 - L'Alchimista dei Sensi.mp3", lyrics: "lyrics/6 - L'Alchimista dei Sensi.txt" },
       { src: 'audio/7 - Digital Renaissance Man.mp3', lyrics: 'lyrics/7 - Digital Renaissance Man.txt' },
-      { src: 'audio/8 - Gustanti Viaggiatori.mp3', lyrics: 'lyrics/8 - Gustanti Viaggiatori.txt' }
+      { src: 'audio/8 - Gustanti Viaggiatori.mp3',   lyrics: 'lyrics/8 - Gustanti Viaggiatori.txt' }
     ];
 
-    const audio    = document.getElementById('audio');
-    const cover    = document.getElementById('cover');
-    const titleEl  = document.getElementById('title');
-    const albumEl  = document.getElementById('album');
-    const playBtn  = document.getElementById('play');
-    const prevBtn  = document.getElementById('prev');
-    const nextBtn  = document.getElementById('next');
-    const progress = document.getElementById('progress');
-    const curTime  = document.getElementById('current-time');
-    const remTime  = document.getElementById('remaining-time');
-    const playlist = document.getElementById('playlist');
-    const themeBtn = document.getElementById('theme-toggle');
-    const lyricsBtn = document.getElementById('lyrics-btn');
+    const audio       = document.getElementById('audio');
+    const cover       = document.getElementById('cover');
+    const titleEl     = document.getElementById('title');
+    const albumEl     = document.getElementById('album');
+    const playBtn     = document.getElementById('play');
+    const prevBtn     = document.getElementById('prev');
+    const nextBtn     = document.getElementById('next');
+    const progress    = document.getElementById('progress');
+    const curTime     = document.getElementById('current-time');
+    const remTime     = document.getElementById('remaining-time');
+    const playlist    = document.getElementById('playlist');
+    const themeBtn    = document.getElementById('theme-toggle');
+    const lyricsBtn   = document.getElementById('lyrics-btn');
     const lyricsModal = document.getElementById('lyrics-modal');
     const lyricsText  = document.getElementById('lyrics-text');
     const closeLyrics = document.getElementById('close-lyrics');
-    let currentIndex = 0;
-    let updatingProgress = false;
+    let currentIndex  = 0;
+    let updating      = false;
 
-    // Genera playlist
-    tracks.forEach((t, i) => {
+    // costruisci playlist
+    tracks.forEach((t,i) => {
       const li = document.createElement('li');
       li.textContent = t.src.split('/')[1].replace('.mp3','');
       li.addEventListener('click', () => loadTrack(i));
@@ -154,42 +156,36 @@
       });
     }
 
-    function loadTrack(i) {
+    async function loadTrack(i) {
       currentIndex = i;
-      const t = tracks[i];
-      playBtn.textContent = '▶️';
+      const { src, lyrics } = tracks[i];
       setActive();
-      // fetch Blob prima di usare jsmediatags
-      fetch(t.src)
-        .then(res => res.blob())
-        .then(blob => {
-          // imposta sorgente audio
-          audio.src = URL.createObjectURL(blob);
-          // leggi tag
-          jsmediatags.read(blob, {
-            onSuccess: tag => {
-              titleEl.textContent = tag.tags.title || '–';
-              albumEl.textContent = tag.tags.album || '–';
-              if (tag.tags.picture) {
-                const { data, format } = tag.tags.picture;
-                let u8 = new Uint8Array(data);
-                const imgBlob = new Blob([u8], { type: format });
-                cover.src = URL.createObjectURL(imgBlob);
-              } else cover.src = 'default-cover.png';
-            },
-            onError: () => {
-              titleEl.textContent = '–';
-              albumEl.textContent = '–';
-              cover.src = 'default-cover.png';
-            }
-          });
-        })
-        .catch(() => {
-          titleEl.textContent = '–';
-          albumEl.textContent = '–';
+      playBtn.textContent = '▶️';
+
+      try {
+        const res = await fetch(src);
+        const blob = await res.blob();
+        audio.src = URL.createObjectURL(blob);
+
+        // estrai metadata
+        const meta = await mm.parseBlob(blob);
+        titleEl.textContent = meta.common.title || '–';
+        albumEl.textContent = meta.common.album || '–';
+
+        // copertina
+        if (meta.common.picture && meta.common.picture.length) {
+          const pic = meta.common.picture[0];
+          const imgBlob = new Blob([pic.data], { type: pic.format });
+          cover.src = URL.createObjectURL(imgBlob);
+        } else {
           cover.src = 'default-cover.png';
-          audio.src = t.src; // fallback
-        });
+        }
+      } catch (e) {
+        titleEl.textContent = '–';
+        albumEl.textContent = '–';
+        cover.src = 'default-cover.png';
+        audio.src = src; // fallback
+      }
     }
 
     function playPause() {
@@ -202,69 +198,51 @@
       }
     }
 
-    prevBtn.addEventListener('click', () => {
-      loadTrack((currentIndex - 1 + tracks.length) % tracks.length);
-      audio.play();
-      playBtn.textContent = '⏸️';
-    });
-    nextBtn.addEventListener('click', () => {
-      loadTrack((currentIndex + 1) % tracks.length);
-      audio.play();
-      playBtn.textContent = '⏸️';
-    });
-    playBtn.addEventListener('click', playPause);
+    prevBtn.onclick = () => { loadTrack((currentIndex-1+tracks.length)%tracks.length).then(()=>audio.play()); playBtn.textContent='⏸️'; };
+    nextBtn.onclick = () => { loadTrack((currentIndex+1)%tracks.length).then(()=>audio.play()); playBtn.textContent='⏸️'; };
+    playBtn.onclick = playPause;
 
-    audio.addEventListener('timeupdate', () => {
-      if (!updatingProgress) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progress.value = pct || 0;
-        curTime.textContent = formatTime(audio.currentTime);
-        remTime.textContent = formatTime((audio.duration || 0) - audio.currentTime);
+    audio.ontimeupdate = () => {
+      if (!updating) {
+        const pct = (audio.currentTime / audio.duration)*100 || 0;
+        progress.value = pct;
+        curTime.textContent = fmt(audio.currentTime);
+        remTime.textContent = fmt((audio.duration||0)-audio.currentTime);
       }
-    });
+    };
 
-    progress.addEventListener('input', () => {
-      updatingProgress = true;
-      const time = (progress.value / 100) * audio.duration;
-      curTime.textContent = formatTime(time);
-    });
-    progress.addEventListener('change', () => {
-      audio.currentTime = (progress.value / 100) * audio.duration;
-      updatingProgress = false;
-    });
+    progress.oninput = () => {
+      updating = true;
+      const t = (progress.value/100)*audio.duration;
+      curTime.textContent = fmt(t);
+    };
+    progress.onchange = () => {
+      audio.currentTime = (progress.value/100)*audio.duration;
+      updating = false;
+    };
 
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60).toString().padStart(2,'0');
-      return `${m}:${s}`;
+    audio.onended = () => nextBtn.click();
+
+    themeBtn.onclick = () => document.body.classList.toggle('dark');
+
+    lyricsBtn.onclick = async () => {
+      const lyr = tracks[currentIndex].lyrics;
+      try {
+        const txt = await fetch(lyr).then(r=>r.ok?r.text():Promise.reject());
+        lyricsText.textContent = txt;
+      } catch {
+        lyricsText.textContent = 'Testo non disponibile.';
+      }
+      lyricsModal.style.display = 'flex';
+    };
+    closeLyrics.onclick = () => lyricsModal.style.display = 'none';
+
+    function fmt(s){
+      const m = Math.floor(s/60), sec = Math.floor(s%60).toString().padStart(2,'0');
+      return `${m}:${sec}`;
     }
 
-    audio.addEventListener('ended', () => nextBtn.click());
-
-    // Tema chiaro/scuro
-    themeBtn.addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-    });
-
-    // Lyrics
-    lyricsBtn.addEventListener('click', () => {
-      const lyrFile = tracks[currentIndex].lyrics;
-      fetch(lyrFile)
-        .then(r => r.ok ? r.text() : Promise.reject())
-        .then(txt => {
-          lyricsText.textContent = txt;
-          lyricsModal.style.display = 'flex';
-        })
-        .catch(() => {
-          lyricsText.textContent = 'Testo non disponibile.';
-          lyricsModal.style.display = 'flex';
-        });
-    });
-    closeLyrics.addEventListener('click', () => {
-      lyricsModal.style.display = 'none';
-    });
-
-    // Avvia il primo
+    // parte tutto
     loadTrack(0);
   </script>
 </body>
