@@ -8,6 +8,7 @@
       --bg: #fff;
       --fg: #222;
       --accent: #007aff;
+      --icon-size: 2.5rem;
     }
     .dark {
       --bg: #222;
@@ -39,7 +40,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
     #controls { display: flex; justify-content: space-around; align-items: center; }
-    button { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--accent); }
+    button { background: none; border: none; cursor: pointer; font-size: var(--icon-size); color: var(--accent); }
     button:focus { outline: none; }
     #progress-container { display: flex; align-items: center; gap: 0.5rem; }
     #progress { flex: 1; }
@@ -50,7 +51,7 @@
       border-radius: 4px;
     }
     #playlist li.active { background: var(--accent); color: #fff; }
-    #theme-toggle { position: fixed; top: 1rem; right: 1rem; }
+    #theme-toggle { position: fixed; top: 1rem; right: 1rem; font-size: 1.5rem; }
     #lyrics-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -95,7 +96,7 @@
       <input type="range" id="progress" min="0" max="100" value="0">
       <span id="remaining-time">0:00</span>
     </div>
-    <button id="lyrics-btn">Mostra testi</button>
+    <button id="lyrics-btn" style="font-size:1rem;">Mostra testi</button>
     <ul id="playlist"></ul>
   </div>
 
@@ -156,27 +157,39 @@
     function loadTrack(i) {
       currentIndex = i;
       const t = tracks[i];
-      audio.src = t.src;
       playBtn.textContent = '▶️';
       setActive();
-
-      jsmediatags.read(t.src, {
-        onSuccess: tag => {
-          titleEl.textContent = tag.tags.title || '–';
-          albumEl.textContent = tag.tags.album || '–';
-          if (tag.tags.picture) {
-            const { data, format } = tag.tags.picture;
-            let u8 = new Uint8Array(data);
-            const blob = new Blob([u8], { type: format });
-            cover.src = URL.createObjectURL(blob);
-          } else cover.src = 'default-cover.png';
-        },
-        onError: () => {
+      // fetch Blob prima di usare jsmediatags
+      fetch(t.src)
+        .then(res => res.blob())
+        .then(blob => {
+          // imposta sorgente audio
+          audio.src = URL.createObjectURL(blob);
+          // leggi tag
+          jsmediatags.read(blob, {
+            onSuccess: tag => {
+              titleEl.textContent = tag.tags.title || '–';
+              albumEl.textContent = tag.tags.album || '–';
+              if (tag.tags.picture) {
+                const { data, format } = tag.tags.picture;
+                let u8 = new Uint8Array(data);
+                const imgBlob = new Blob([u8], { type: format });
+                cover.src = URL.createObjectURL(imgBlob);
+              } else cover.src = 'default-cover.png';
+            },
+            onError: () => {
+              titleEl.textContent = '–';
+              albumEl.textContent = '–';
+              cover.src = 'default-cover.png';
+            }
+          });
+        })
+        .catch(() => {
           titleEl.textContent = '–';
           albumEl.textContent = '–';
           cover.src = 'default-cover.png';
-        }
-      });
+          audio.src = t.src; // fallback
+        });
     }
 
     function playPause() {
