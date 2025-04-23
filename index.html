@@ -529,23 +529,15 @@
             function loadMetadata() {
                 const songPath = songs[currentSongIndex].src;
                 
-                // Use jsmediatags to read ID3 tags
-                if (typeof window.jsmediatags === 'undefined') {
-                    // Load jsmediatags library if not already loaded
-                    const script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js';
-                    document.head.appendChild(script);
-                    
-                    script.onload = function() {
-                        readTags(songPath);
-                    };
-                } else {
-                    readTags(songPath);
-                }
+                // Estrai titolo dal nome del file
+                const fileName = getSongTitle(songPath);
+                songTitle.textContent = fileName;
+                songAlbum.textContent = "Album sconosciuto";
+                coverArt.src = "default-cover.png";
                 
-                // Default values while loading
-                songTitle.textContent = getSongTitle(songPath);
-                songAlbum.textContent = "Caricamento informazioni...";
+                // Nota: lettura ID3 tag disabilitata per problemi di compatibilità
+                // In un ambiente di produzione, bisognerebbe implementare 
+                // una soluzione server-side per estrarre questi dati
             }
             
             // Read ID3 tags using jsmediatags
