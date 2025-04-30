@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Titolo aggiornato nella scheda del browser (opzionale, ma coerente) -->
     <title>Gustanti Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Non serve più jsmediatags se non lo usiamo -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.8/jsmediatags.min.js"></script> -->
     <style>
-        /* --- MODIFICA COLORI --- */
-        :root {
-            /* Blu più classico come primario */
+        /* --- CSS INVARIATO DALL'ULTIMA VERSIONE --- */
+         :root {
             --primary-color: #3b82f6; /* blue-500 */
-            /* Blu leggermente più chiaro per hover/secondario */
             --secondary-color: #60a5fa; /* blue-400 */
             --text-color: #1f2937;
             --background-color: #f9fafb;
@@ -25,9 +20,7 @@
         }
 
         .dark-theme {
-            /* Blu più chiaro/brillante per tema scuro */
             --primary-color: #60a5fa; /* blue-400 */
-            /* Blu ancora più chiaro per hover/secondario scuro */
             --secondary-color: #93c5fd; /* blue-300 */
             --text-color: #f9fafb;
             --background-color: #111827;
@@ -37,7 +30,6 @@
             --shadow-color: rgba(0, 0, 0, 0.5);
             --progress-bg: #4b5563;
         }
-        /* --- FINE MODIFICA COLORI --- */
 
         * {
             margin: 0;
@@ -104,11 +96,10 @@
 
         .player-section {
             flex: 1;
-            min-width: 300px; /* Mantiene una larghezza minima */
+            min-width: 300px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            /* Aggiunta per centrare contenuto quando la sezione è larga */
             align-items: center;
         }
 
@@ -117,8 +108,8 @@
             min-width: 300px;
             padding: 20px;
             border-left: 1px solid var(--border-color);
-            display: none; /* Inizialmente nascosto */
-            max-height: 500px; /* Potrebbe necessitare aggiustamento */
+            display: none;
+            max-height: 500px;
             overflow-y: auto;
         }
 
@@ -133,14 +124,12 @@
         }
 
         .cover-container {
-            width: 100%; /* Occupa la larghezza del suo contenitore (.player-section) */
-            /* --- MODIFICA DIMENSIONE MAX COPERTINA --- */
-            max-width: 400px; /* Limita la larghezza massima della copertina */
-            margin-left: auto; /* Centra se più stretto del contenitore */
-            margin-right: auto; /* Centra se più stretto del contenitore */
-            /* --- FINE MODIFICA --- */
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
             height: 0;
-            padding-bottom: 100%; /* Mantiene l'aspetto quadrato basato sulla larghezza */
+            padding-bottom: 100%;
             position: relative;
             margin-bottom: 20px;
             border-radius: 8px;
@@ -155,16 +144,16 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+             /* Aggiungi uno sfondo leggero per il caricamento o errore */
+             background-color: var(--progress-bg);
         }
 
-        /* Assicurarsi che gli elementi sotto la copertina usino la larghezza disponibile */
         .song-info,
         .progress-container,
         .controls,
         .volume-container,
         .show-lyrics-btn {
             width: 100%;
-             /* Limita anche questi alla larghezza della copertina per coerenza */
             max-width: 400px;
         }
 
@@ -186,7 +175,6 @@
         }
 
         .progress-container {
-            /* width: 100%; */ /* Già impostato sopra */
             margin-bottom: 10px;
         }
 
@@ -218,7 +206,6 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
-            /* width: 100%; */ /* Già impostato sopra */
         }
 
         .control-btn {
@@ -247,7 +234,6 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-             /* width: 100%; */ /* Già impostato sopra */
         }
 
         .volume-icon {
@@ -295,10 +281,7 @@
             font-size: 0.9rem;
             margin-bottom: 20px;
             transition: background-color 0.2s;
-            /* Rimosso align-self: center perché player-section ora usa align-items: center */
-            /* align-self: center; */
-            /* width: auto; */ /* Non serve limitare la larghezza qui */
-            max-width: fit-content; /* Fa sì che il bottone non sia enorme */
+            max-width: fit-content;
             margin-left: auto;
             margin-right: auto;
         }
@@ -341,9 +324,7 @@
             background-color: var(--surface-color-hover);
         }
 
-        /* Usare var(--primary-color) con trasparenza per lo sfondo attivo */
         .playlist-item.active {
-             /* Es: 10% opacità del colore primario */
             background-color: hsla(from var(--primary-color) h s l / 0.1);
         }
 
@@ -359,7 +340,6 @@
             flex: 1;
         }
 
-        /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             .content-container {
                 flex-direction: column;
@@ -368,23 +348,21 @@
             .lyrics-section {
                 border-left: none;
                 border-top: 1px solid var(--border-color);
-                max-height: 300px; /* Riduce altezza su mobile */
+                max-height: 300px;
             }
 
             .player-section {
                 min-width: 100%;
-                /* Rimuove align-items: center su mobile per usare tutta la larghezza */
                 align-items: stretch;
             }
 
-            /* Su mobile, la copertina e i controlli possono usare più larghezza */
              .cover-container,
              .song-info,
              .progress-container,
              .controls,
              .volume-container,
              .show-lyrics-btn {
-                max-width: none; /* Rimuove il limite max-width */
+                max-width: none;
              }
 
             .lyrics-section {
@@ -396,7 +374,6 @@
             }
         }
 
-        /* Scroll bar styling */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -419,9 +396,7 @@
     <div class="container">
         <div class="player-container">
             <div class="player-header">
-                <!-- --- MODIFICA TITOLO PLAYER --- -->
                 <div class="logo">Gustanti Player</div>
-                <!-- --- FINE MODIFICA --- -->
                 <button class="theme-toggle" id="themeToggle">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -429,12 +404,14 @@
             <div class="content-container">
                 <div class="player-section">
                     <div class="cover-container">
+                        <!-- Immagine di default iniziale, verrà sostituita -->
                         <img src="default-cover.png" alt="Album Cover" class="cover-art" id="coverArt">
                     </div>
                     <div class="song-info">
-                        <div class="song-title" id="songTitle">Seleziona una traccia</div>
-                        <!-- Album non più letto da ID3, quindi mettiamo un placeholder generico -->
-                        <div class="song-album" id="songAlbum">Playlist Corrente</div>
+                        <!-- Titolo iniziale, verrà sostituito -->
+                        <div class="song-title" id="songTitle">Caricamento...</div>
+                        <!-- Album fisso -->
+                        <div class="song-album" id="songAlbum">Gustanti Viaggiatori</div>
                     </div>
                     <div class="progress-container">
                         <div class="progress-bar" id="progressBar">
@@ -472,16 +449,14 @@
         </div>
         <div class="playlist-container">
             <div class="playlist-header">Playlist</div>
+            <!-- La playlist verrà popolata da JS -->
             <ul class="playlist" id="playlist"></ul>
         </div>
     </div>
 
     <script>
-        // --- JAVASCRIPT INVARIATO ---
-        // (Utilizza ancora la logica precedente per caricare audio, testi,
-        // gestire play/pausa, volume, tema, ecc. ma senza il tentativo
-        // di leggere gli ID3 tag con jsmediatags)
-        document.addEventListener('DOMContentLoaded', function() {
+        // Attende il caricamento del DOM
+        document.addEventListener('DOMContentLoaded', async function() { // Aggiunto async qui
             // Get DOM elements
             const audioPlayer = new Audio();
             const playPauseBtn = document.getElementById('playPauseBtn');
@@ -494,15 +469,19 @@
             const volumeSlider = document.getElementById('volumeSlider');
             const volumeIcon = document.getElementById('volumeIcon');
             const coverArt = document.getElementById('coverArt');
-            const songTitle = document.getElementById('songTitle');
-            const songAlbum = document.getElementById('songAlbum'); // Ancora referenziato, ma impostato staticamente sopra
-            const playlist = document.getElementById('playlist');
+            const songTitleEl = document.getElementById('songTitle'); // Rinominato per chiarezza
+            const songAlbumEl = document.getElementById('songAlbum'); // Rinominato per chiarezza
+            const playlistEl = document.getElementById('playlist');  // Rinominato per chiarezza
             const themeToggle = document.getElementById('themeToggle');
             const lyricsBtn = document.getElementById('lyricsBtn');
             const lyricsSection = document.getElementById('lyricsSection');
             const lyricsContent = document.getElementById('lyricsContent');
 
-            // Playlist data
+            // --- NUOVO: Array per contenere i titoli letti dal file ---
+            let songTitlesList = [];
+            const defaultAlbumTitle = "Gustanti Viaggiatori"; // Album fisso
+
+            // Playlist data (solo percorsi audio e lyrics)
             const songs = [
                 { src: 'audio/1 - Intro.mp3', lyrics: 'lyrics/1 - Intro.txt' },
                 { src: 'audio/2 - La Forza Gentile.mp3', lyrics: 'lyrics/2 - La Forza Gentile.txt' },
@@ -518,33 +497,87 @@
             let isPlaying = false;
             let lyricsVisible = false;
 
-            // Non serve più jsmediatags
-            // const jsmediatags = window.jsmediatags;
+            // --- NUOVO: Funzione per caricare i titoli dal file TXT ---
+            async function loadTitles() {
+                try {
+                    const response = await fetch('lyrics/titoli.txt');
+                    if (!response.ok) {
+                        throw new Error(`Errore HTTP: ${response.status}`);
+                    }
+                    const text = await response.text();
+                    // Divide per newline, rimuove righe vuote e spazi bianchi inizio/fine
+                    songTitlesList = text.split('\n')
+                                        .map(title => title.trim())
+                                        .filter(title => title.length > 0);
+                    console.log("Titoli caricati:", songTitlesList);
+                    if (songTitlesList.length !== songs.length) {
+                        console.warn(`Attenzione: Il numero di titoli (${songTitlesList.length}) non corrisponde al numero di canzoni (${songs.length}). Verranno usati i nomi file come fallback.`);
+                    }
+                } catch (error) {
+                    console.error('Errore nel caricamento del file titoli.txt:', error);
+                    // Se il file non carica, songTitlesList rimarrà vuoto
+                    // e useremo i nomi file come fallback
+                }
+            }
+
+            // --- NUOVO: Funzione helper per ottenere il titolo corretto ---
+            function getTitle(index) {
+                // Prova a prendere il titolo dalla lista caricata
+                if (songTitlesList && index < songTitlesList.length) {
+                    return songTitlesList[index];
+                }
+                // Fallback: estrai titolo dal nome file MP3
+                return getFilenameTitle(songs[index].src);
+            }
+
+            // --- NUOVO: Funzione helper per ottenere il percorso della copertina ---
+            function getCoverPath(index) {
+                // Assumiamo che le copertine siano .jpg
+                return `lyrics/copertina${index + 1}.jpg`;
+            }
+
+            // Estrae il titolo dal nome del file (usato come fallback)
+            function getFilenameTitle(src) {
+                try {
+                    const filename = src.split('/').pop();
+                    const decodedFilename = decodeURIComponent(filename);
+                    return decodedFilename.replace('.mp3', '').replace(/^\d+\s*-\s*/, ''); // Rimuove "N - " iniziale se presente
+                } catch (e) {
+                    console.error("Errore nell'estrarre il nome del file:", e);
+                    return "Traccia sconosciuta";
+                }
+            }
+
 
             // Initialize player
-            function init() {
-                // Create playlist items
+            async function init() { // Aggiunto async qui
+                // --- NUOVO: Carica i titoli PRIMA di fare altro ---
+                await loadTitles();
+
+                // Popola la playlist nell'HTML
+                playlistEl.innerHTML = ''; // Pulisce la lista precedente (se ce n'era)
                 songs.forEach((song, index) => {
                     const li = document.createElement('li');
                     li.className = 'playlist-item';
+                    const displayTitle = getTitle(index); // Ottiene il titolo corretto
+                    // Formato per la playlist: "N - Titolo"
                     li.innerHTML = `
                         <span class="playlist-item-number">${index + 1}</span>
-                        <span class="playlist-item-title">${getSongTitle(song.src)}</span>
+                        <span class="playlist-item-title">${index + 1} - ${displayTitle}</span>
                     `;
                     li.addEventListener('click', () => {
                         currentSongIndex = index;
                         loadSong();
-                        // Tenta di avviare la riproduzione al click sulla playlist
                         playAudio();
                     });
-                    playlist.appendChild(li);
+                    playlistEl.appendChild(li);
                 });
 
-                // Set initial volume
+                // Imposta volume iniziale
                 audioPlayer.volume = volumeSlider.value;
-                updateVolumeIcon(); // Aggiorna icona volume all'avvio
+                updateVolumeIcon();
 
-                // Check for saved theme
+                // Controlla tema salvato
                 try {
                     if (localStorage.getItem('theme') === 'dark') {
                         document.body.classList.add('dark-theme');
@@ -554,86 +587,68 @@
                     }
                 } catch (error) {
                     console.log('localStorage non disponibile:', error);
-                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Default icon
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
                 }
 
-                // Add event listeners
+                // Aggiungi event listeners (inclusi quelli per l'immagine)
                 addEventListeners();
 
-                // Load initial info (titolo da filename, cover default)
+                // Mostra info della prima traccia all'avvio
                 if (songs.length > 0) {
-                    loadInitialDisplay(songs[0].src);
+                    updateDisplay(0); // Usa la nuova funzione per aggiornare titolo, album, cover
+                    updateProgress(); // Imposta tempi a 00:00
                 }
             }
 
-            // Extract song title from file path (fallback)
-            function getSongTitle(src) {
-                try {
-                    const filename = src.split('/').pop();
-                    const decodedFilename = decodeURIComponent(filename);
-                    return decodedFilename.replace('.mp3', '');
-                } catch (e) {
-                    console.error("Errore nell'estrarre il nome del file:", e);
-                    return "Traccia sconosciuta";
-                }
+            // --- NUOVO: Funzione per aggiornare Titolo, Album (fisso) e Copertina ---
+            function updateDisplay(index) {
+                const title = getTitle(index);
+                const coverPath = getCoverPath(index);
+
+                songTitleEl.textContent = title; // Mostra solo il titolo nel player
+                songAlbumEl.textContent = defaultAlbumTitle; // Album fisso
+                coverArt.src = coverPath; // Imposta la copertina specifica
+                // L'event listener 'error' sull'immagine gestirà il fallback a default-cover.png
             }
 
-            // Load initial display without loading audio
-             function loadInitialDisplay(songPath) {
-                songTitle.textContent = getSongTitle(songPath);
-                songAlbum.textContent = "Playlist Corrente"; // Testo statico definito nell'HTML
-                coverArt.src = "default-cover.png";
-                updateProgress(); // Imposta i tempi a 00:00
-             }
-
-
-            // Load song (audio and lyrics)
+            // Load song (audio e lyrics) e aggiorna display
             function loadSong() {
+                if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
+                    console.error("Indice canzone non valido:", currentSongIndex);
+                    return;
+                }
                 const currentSong = songs[currentSongIndex];
                 audioPlayer.src = currentSong.src;
-                 // Non chiamare audioPlayer.load() qui, il browser lo fa implicitamente con src
-                 // audioPlayer.load();
 
-                // Update active playlist item
+                // Aggiorna display (Titolo, Album, Copertina)
+                updateDisplay(currentSongIndex);
+
+                // Aggiorna elemento attivo nella playlist
                 const playlistItems = document.querySelectorAll('.playlist-item');
                 playlistItems.forEach((item, index) => {
                     item.classList.toggle('active', index === currentSongIndex);
                 });
 
-                // Update display (Title, Album [statico], Cover [default])
-                songTitle.textContent = getSongTitle(currentSong.src);
-                songAlbum.textContent = "Playlist Corrente"; // Testo statico
-                coverArt.src = "default-cover.png"; // Sempre default cover
-
-                // Load lyrics
+                // Carica i testi
                 loadLyrics();
 
-                // Reset progress bar and time until metadata is loaded
+                // Resetta la barra di avanzamento finché i metadati non sono caricati
                 progress.style.width = '0%';
                 currentTimeEl.textContent = "00:00";
                 totalTimeEl.textContent = "00:00";
             }
 
-            // --- Funzione loadMetadata rimossa perché non usiamo ID3 ---
 
-            // Convert array buffer to base64 string (non più usata per cover)
-            function arrayBufferToBase64(buffer) {
-                let binary = '';
-                const bytes = new Uint8Array(buffer);
-                const len = bytes.byteLength;
-                for (let i = 0; i < len; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                return window.btoa(binary);
-            }
-
-            // Load lyrics
+            // Carica i testi
             function loadLyrics() {
-                // Resetta il contenuto precedente
                 lyricsContent.textContent = "Caricamento testo...";
+                 if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
+                    lyricsContent.textContent = "Errore indice canzone.";
+                    return;
+                 }
                 const currentSong = songs[currentSongIndex];
                 if (!currentSong || !currentSong.lyrics) {
-                    lyricsContent.textContent = "Testo non disponibile per questa canzone.";
+                    lyricsContent.textContent = "Percorso testo non definito.";
                     return;
                 }
                 const lyricsPath = currentSong.lyrics;
@@ -649,92 +664,70 @@
                         lyricsContent.textContent = text;
                     })
                     .catch(error => {
-                        lyricsContent.textContent = "Testo non disponibile per questa canzone.";
+                        lyricsContent.textContent = "Testo non disponibile.";
                         console.error('Errore nel caricamento del testo:', error);
                     });
             }
 
-            // Function to handle playing audio, including browser restrictions
+            // Funzione per gestire la riproduzione audio
             function playAudio() {
-                if (!audioPlayer.src) {
-                    console.warn("Nessuna sorgente audio caricata.");
-                    return;
-                }
-                 // Check if context is suspended (common issue after page load)
+                if (!audioPlayer.src) return;
                 if (audioPlayer.paused) {
                     const playPromise = audioPlayer.play();
                     if (playPromise !== undefined) {
-                        playPromise.then(_ => {
-                            // Playback started successfully
-                            console.log("Audio playback started.");
-                        }).catch(error => {
-                            // Auto-play was prevented or another error occurred
+                        playPromise.catch(error => {
                             console.error("Errore durante play():", error);
-                            // Reset state as playback didn't start
                             isPlaying = false;
                             playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                            // Inform user? Maybe a message like "Click play to start"
                         });
                     }
                 }
             }
 
-            // Function to handle pausing audio
+            // Funzione per gestire la pausa
             function pauseAudio() {
                 audioPlayer.pause();
             }
 
-            // Toggle play/pause button action
+            // Azione bottone Play/Pause
             function playPause() {
-                // If no song is loaded yet, load the first one and try to play
                  if (!audioPlayer.src && songs.length > 0) {
                     currentSongIndex = 0;
                     loadSong();
-                    // Don't auto-play here, let the next click handle it
-                    // or rely on the 'canplay' event if needed
                     return;
                 }
-
-                if (isPlaying) {
-                    pauseAudio();
-                } else {
-                    playAudio();
-                }
-                // State (isPlaying, button icon) is updated by 'play' and 'pause' event listeners
+                if (isPlaying) pauseAudio();
+                else playAudio();
             }
 
-
-             // Play previous song
+            // Traccia Precedente
             function playPrevious() {
                 if (songs.length === 0) return;
-                const wasPlaying = isPlaying; // Store previous state
+                const wasPlaying = isPlaying;
                 currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
                 loadSong();
-                if (wasPlaying) {
-                    // Wait for 'canplay' to trigger playAudio via event listener
+                if (wasPlaying) playAudio(); // Tenta di riprendere la riproduzione
+                else playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+
+            // Traccia Successiva (anche chiamata da 'ended')
+            function playNext() {
+                if (songs.length === 0) return;
+                const wasPlaying = isPlaying;
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+                loadSong();
+                if (wasPlaying || event?.type === 'ended') { // Se finisce la canzone, riproduci la successiva
+                     playAudio();
                 } else {
-                     playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                 }
             }
 
-            // Play next song
-            function playNext() {
-                if (songs.length === 0) return;
-                const wasPlaying = isPlaying; // Store previous state
-                currentSongIndex = (currentSongIndex + 1) % songs.length;
-                loadSong();
-                 if (wasPlaying) {
-                     // Wait for 'canplay' to trigger playAudio via event listener
-                 } else {
-                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                 }
-            }
 
-            // Update progress bar
+            // Aggiorna barra progresso
             function updateProgress() {
                 const duration = audioPlayer.duration;
                 const currentTime = audioPlayer.currentTime;
-
                 if (!isNaN(duration) && duration > 0) {
                     const progressPercent = (currentTime / duration) * 100;
                     progress.style.width = `${progressPercent}%`;
@@ -747,131 +740,85 @@
                 }
             }
 
-            // Format time in mm:ss
+            // Formatta tempo MM:SS
             function formatTime(seconds) {
                 const minutes = Math.floor(seconds / 60);
                 const secs = Math.floor(seconds % 60);
                 return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
 
-            // Set progress when clicking on progress bar
+            // Imposta progresso al click
             function setProgress(e) {
                 const width = progressBar.clientWidth;
                 const clickPosition = e.offsetX;
                 const duration = audioPlayer.duration;
-
                 if (!isNaN(duration) && duration > 0) {
                     audioPlayer.currentTime = (clickPosition / width) * duration;
                 }
             }
 
-            // Update volume icon based on volume level and muted state
+            // Aggiorna icona volume
             function updateVolumeIcon() {
                 const volume = audioPlayer.volume;
                 const muted = audioPlayer.muted;
-
-                if (muted || volume === 0) {
-                    volumeIcon.className = 'fas fa-volume-mute volume-icon';
-                } else if (volume < 0.5) {
-                    volumeIcon.className = 'fas fa-volume-down volume-icon';
-                } else {
-                    volumeIcon.className = 'fas fa-volume-up volume-icon';
-                }
+                if (muted || volume === 0) volumeIcon.className = 'fas fa-volume-mute volume-icon';
+                else if (volume < 0.5) volumeIcon.className = 'fas fa-volume-down volume-icon';
+                else volumeIcon.className = 'fas fa-volume-up volume-icon';
             }
 
-            // Toggle theme
+            // Cambia tema
             function toggleTheme() {
                 const isDark = document.body.classList.toggle('dark-theme');
                 themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-                try {
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                } catch (error) {
-                    console.log('localStorage non disponibile:', error);
-                }
+                try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
+                catch (error) { console.log('localStorage non disponibile:', error); }
             }
 
-            // Toggle lyrics panel
+            // Mostra/nascondi testi
             function toggleLyrics() {
                 lyricsVisible = !lyricsVisible;
                 lyricsSection.style.display = lyricsVisible ? 'block' : 'none';
                 lyricsBtn.textContent = lyricsVisible ? 'Nascondi testo' : 'Mostra testo';
-
-                // Force reflow/repaint if needed, although flexbox should handle it
-                 // window.dispatchEvent(new Event('resize'));
             }
 
-            // Add all event listeners
+            // Aggiunge tutti gli event listeners
             function addEventListeners() {
-                // Player controls
                 playPauseBtn.addEventListener('click', playPause);
                 prevBtn.addEventListener('click', playPrevious);
                 nextBtn.addEventListener('click', playNext);
-
-                // Progress bar
                 progressBar.addEventListener('click', setProgress);
                 audioPlayer.addEventListener('timeupdate', updateProgress);
-                audioPlayer.addEventListener('loadedmetadata', updateProgress); // Update total time when available
-
-                // Song end event
-                audioPlayer.addEventListener('ended', playNext);
-
-                // Play/Pause state changes (update UI accordingly)
-                audioPlayer.addEventListener('play', () => {
-                    isPlaying = true;
-                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                });
-                audioPlayer.addEventListener('pause', () => {
-                    isPlaying = false;
-                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                });
-
-                // Volume control
-                volumeSlider.addEventListener('input', () => {
-                    audioPlayer.muted = false; // Unmute if user interacts with slider
-                    audioPlayer.volume = volumeSlider.value;
-                    // updateVolumeIcon() is called by 'volumechange' event
-                });
-                 // Update icon when volume actually changes
+                audioPlayer.addEventListener('loadedmetadata', updateProgress);
+                audioPlayer.addEventListener('ended', playNext); // Va alla prossima alla fine
+                audioPlayer.addEventListener('play', () => { isPlaying = true; playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
+                audioPlayer.addEventListener('pause', () => { isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+                volumeSlider.addEventListener('input', () => { audioPlayer.muted = false; audioPlayer.volume = volumeSlider.value; });
                 audioPlayer.addEventListener('volumechange', updateVolumeIcon);
-
-                // Click volume icon to mute/unmute
-                volumeIcon.addEventListener('click', () => {
-                    audioPlayer.muted = !audioPlayer.muted;
-                    // Slider value update is handled by 'volumechange' if needed,
-                    // or we can update it manually here:
-                    volumeSlider.value = audioPlayer.muted ? 0 : audioPlayer.volume;
-                    updateVolumeIcon(); // Update icon immediately
-                });
-
-                // Theme toggle
+                volumeIcon.addEventListener('click', () => { audioPlayer.muted = !audioPlayer.muted; volumeSlider.value = audioPlayer.muted ? 0 : audioPlayer.volume; updateVolumeIcon(); });
                 themeToggle.addEventListener('click', toggleTheme);
-
-                // Lyrics toggle
                 lyricsBtn.addEventListener('click', toggleLyrics);
-
-                 // Evento 'canplay': update progress and potentially start play
-                audioPlayer.addEventListener('canplay', () => {
-                    console.log("Audio can play:", audioPlayer.src);
-                    updateProgress(); // Update duration display
-                    // Auto-play if it was playing before nav (handled in playNext/Prev logic)
-                     // if (shouldBePlaying) playAudio(); // 'shouldBePlaying' needs managing
-                });
-
-                // Error handling for audio element
+                audioPlayer.addEventListener('canplay', updateProgress);
                 audioPlayer.addEventListener('error', (e) => {
                     console.error('Errore elemento Audio:', audioPlayer.error);
-                    songTitle.textContent = "Errore caricamento traccia";
-                    songAlbum.textContent = ""; // Clear album text on error
-                    coverArt.src = "default-cover.png"; // Reset cover
-                    // Stop trying to play and reset button
-                    isPlaying = false;
-                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                    updateProgress(); // Reset timers
+                    songTitleEl.textContent = "Errore traccia";
+                    songAlbumEl.textContent = "";
+                    coverArt.src = "default-cover.png"; // Fallback cover su errore audio
+                    isPlaying = false; playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; updateProgress();
+                });
+
+                // --- NUOVO: Event listener per errore caricamento immagine copertina ---
+                coverArt.addEventListener('error', () => {
+                    console.warn(`Copertina non trovata o errore nel caricamento: ${coverArt.src}. Uso default.`);
+                    coverArt.src = 'default-cover.png'; // Fallback se l'immagine specifica non carica
                 });
             }
 
-            // Initialize player
-            init();
+            // --- Avvia l'inizializzazione (che ora è asincrona) ---
+            init().catch(error => {
+                console.error("Errore durante l'inizializzazione del player:", error);
+                // Mostra un messaggio di errore all'utente se necessario
+                songTitleEl.textContent = "Errore Player";
+            });
         });
     </script>
 </body>
