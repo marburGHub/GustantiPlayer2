@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player</title>
+    <!-- Titolo aggiornato nella scheda del browser (opzionale, ma coerente) -->
+    <title>Gustanti Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Inclusione della libreria jsmediatags -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.8/jsmediatags.min.js"></script>
+    <!-- Non serve più jsmediatags se non lo usiamo -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.8/jsmediatags.min.js"></script> -->
     <style>
-        /* ... (TUTTO IL CSS RIMANE INVARIATO) ... */
+        /* --- MODIFICA COLORI --- */
         :root {
-            --primary-color: #6366f1;
-            --secondary-color: #818cf8;
+            /* Blu più classico come primario */
+            --primary-color: #3b82f6; /* blue-500 */
+            /* Blu leggermente più chiaro per hover/secondario */
+            --secondary-color: #60a5fa; /* blue-400 */
             --text-color: #1f2937;
             --background-color: #f9fafb;
             --surface-color: #ffffff;
@@ -22,8 +25,10 @@
         }
 
         .dark-theme {
-            --primary-color: #818cf8;
-            --secondary-color: #a5b4fc;
+            /* Blu più chiaro/brillante per tema scuro */
+            --primary-color: #60a5fa; /* blue-400 */
+            /* Blu ancora più chiaro per hover/secondario scuro */
+            --secondary-color: #93c5fd; /* blue-300 */
             --text-color: #f9fafb;
             --background-color: #111827;
             --surface-color: #1f2937;
@@ -32,6 +37,7 @@
             --shadow-color: rgba(0, 0, 0, 0.5);
             --progress-bg: #4b5563;
         }
+        /* --- FINE MODIFICA COLORI --- */
 
         * {
             margin: 0;
@@ -98,10 +104,12 @@
 
         .player-section {
             flex: 1;
-            min-width: 300px;
+            min-width: 300px; /* Mantiene una larghezza minima */
             padding: 20px;
             display: flex;
             flex-direction: column;
+            /* Aggiunta per centrare contenuto quando la sezione è larga */
+            align-items: center;
         }
 
         .lyrics-section {
@@ -109,8 +117,8 @@
             min-width: 300px;
             padding: 20px;
             border-left: 1px solid var(--border-color);
-            display: none;
-            max-height: 500px;
+            display: none; /* Inizialmente nascosto */
+            max-height: 500px; /* Potrebbe necessitare aggiustamento */
             overflow-y: auto;
         }
 
@@ -125,9 +133,14 @@
         }
 
         .cover-container {
-            width: 100%;
+            width: 100%; /* Occupa la larghezza del suo contenitore (.player-section) */
+            /* --- MODIFICA DIMENSIONE MAX COPERTINA --- */
+            max-width: 400px; /* Limita la larghezza massima della copertina */
+            margin-left: auto; /* Centra se più stretto del contenitore */
+            margin-right: auto; /* Centra se più stretto del contenitore */
+            /* --- FINE MODIFICA --- */
             height: 0;
-            padding-bottom: 100%;
+            padding-bottom: 100%; /* Mantiene l'aspetto quadrato basato sulla larghezza */
             position: relative;
             margin-bottom: 20px;
             border-radius: 8px;
@@ -143,6 +156,18 @@
             height: 100%;
             object-fit: cover;
         }
+
+        /* Assicurarsi che gli elementi sotto la copertina usino la larghezza disponibile */
+        .song-info,
+        .progress-container,
+        .controls,
+        .volume-container,
+        .show-lyrics-btn {
+            width: 100%;
+             /* Limita anche questi alla larghezza della copertina per coerenza */
+            max-width: 400px;
+        }
+
 
         .song-info {
             margin-bottom: 20px;
@@ -161,7 +186,7 @@
         }
 
         .progress-container {
-            width: 100%;
+            /* width: 100%; */ /* Già impostato sopra */
             margin-bottom: 10px;
         }
 
@@ -193,6 +218,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 20px;
+            /* width: 100%; */ /* Già impostato sopra */
         }
 
         .control-btn {
@@ -221,6 +247,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
+             /* width: 100%; */ /* Già impostato sopra */
         }
 
         .volume-icon {
@@ -268,7 +295,12 @@
             font-size: 0.9rem;
             margin-bottom: 20px;
             transition: background-color 0.2s;
-            align-self: center;
+            /* Rimosso align-self: center perché player-section ora usa align-items: center */
+            /* align-self: center; */
+            /* width: auto; */ /* Non serve limitare la larghezza qui */
+            max-width: fit-content; /* Fa sì che il bottone non sia enorme */
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .show-lyrics-btn:hover {
@@ -309,8 +341,10 @@
             background-color: var(--surface-color-hover);
         }
 
+        /* Usare var(--primary-color) con trasparenza per lo sfondo attivo */
         .playlist-item.active {
-            background-color: rgba(99, 102, 241, 0.1);
+             /* Es: 10% opacità del colore primario */
+            background-color: hsla(from var(--primary-color) h s l / 0.1);
         }
 
         .playlist-item-number {
@@ -334,11 +368,24 @@
             .lyrics-section {
                 border-left: none;
                 border-top: 1px solid var(--border-color);
+                max-height: 300px; /* Riduce altezza su mobile */
             }
 
             .player-section {
                 min-width: 100%;
+                /* Rimuove align-items: center su mobile per usare tutta la larghezza */
+                align-items: stretch;
             }
+
+            /* Su mobile, la copertina e i controlli possono usare più larghezza */
+             .cover-container,
+             .song-info,
+             .progress-container,
+             .controls,
+             .volume-container,
+             .show-lyrics-btn {
+                max-width: none; /* Rimuove il limite max-width */
+             }
 
             .lyrics-section {
                 min-width: 100%;
@@ -372,7 +419,9 @@
     <div class="container">
         <div class="player-container">
             <div class="player-header">
-                <div class="logo">Music Player</div>
+                <!-- --- MODIFICA TITOLO PLAYER --- -->
+                <div class="logo">Gustanti Player</div>
+                <!-- --- FINE MODIFICA --- -->
                 <button class="theme-toggle" id="themeToggle">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -384,7 +433,8 @@
                     </div>
                     <div class="song-info">
                         <div class="song-title" id="songTitle">Seleziona una traccia</div>
-                        <div class="song-album" id="songAlbum">Nessun album</div>
+                        <!-- Album non più letto da ID3, quindi mettiamo un placeholder generico -->
+                        <div class="song-album" id="songAlbum">Playlist Corrente</div>
                     </div>
                     <div class="progress-container">
                         <div class="progress-bar" id="progressBar">
@@ -427,6 +477,10 @@
     </div>
 
     <script>
+        // --- JAVASCRIPT INVARIATO ---
+        // (Utilizza ancora la logica precedente per caricare audio, testi,
+        // gestire play/pausa, volume, tema, ecc. ma senza il tentativo
+        // di leggere gli ID3 tag con jsmediatags)
         document.addEventListener('DOMContentLoaded', function() {
             // Get DOM elements
             const audioPlayer = new Audio();
@@ -441,7 +495,7 @@
             const volumeIcon = document.getElementById('volumeIcon');
             const coverArt = document.getElementById('coverArt');
             const songTitle = document.getElementById('songTitle');
-            const songAlbum = document.getElementById('songAlbum');
+            const songAlbum = document.getElementById('songAlbum'); // Ancora referenziato, ma impostato staticamente sopra
             const playlist = document.getElementById('playlist');
             const themeToggle = document.getElementById('themeToggle');
             const lyricsBtn = document.getElementById('lyricsBtn');
@@ -464,8 +518,8 @@
             let isPlaying = false;
             let lyricsVisible = false;
 
-            // Reference to jsmediatags library (loaded globally)
-            const jsmediatags = window.jsmediatags;
+            // Non serve più jsmediatags
+            // const jsmediatags = window.jsmediatags;
 
             // Initialize player
             function init() {
@@ -480,30 +534,35 @@
                     li.addEventListener('click', () => {
                         currentSongIndex = index;
                         loadSong();
-                        playPause();
+                        // Tenta di avviare la riproduzione al click sulla playlist
+                        playAudio();
                     });
                     playlist.appendChild(li);
                 });
 
                 // Set initial volume
                 audioPlayer.volume = volumeSlider.value;
+                updateVolumeIcon(); // Aggiorna icona volume all'avvio
 
                 // Check for saved theme
                 try {
                     if (localStorage.getItem('theme') === 'dark') {
                         document.body.classList.add('dark-theme');
                         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    } else {
+                        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
                     }
                 } catch (error) {
                     console.log('localStorage non disponibile:', error);
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Default icon
                 }
 
                 // Add event listeners
                 addEventListeners();
 
-                // Load initial metadata for the first song (or placeholder)
+                // Load initial info (titolo da filename, cover default)
                 if (songs.length > 0) {
-                    loadMetadata(songs[0].src); // Carica metadati iniziali senza avviare la canzone
+                    loadInitialDisplay(songs[0].src);
                 }
             }
 
@@ -511,7 +570,6 @@
             function getSongTitle(src) {
                 try {
                     const filename = src.split('/').pop();
-                    // Decodifica eventuali caratteri speciali nel nome file (es. %20 per spazio)
                     const decodedFilename = decodeURIComponent(filename);
                     return decodedFilename.replace('.mp3', '');
                 } catch (e) {
@@ -520,11 +578,21 @@
                 }
             }
 
-            // Load song
+            // Load initial display without loading audio
+             function loadInitialDisplay(songPath) {
+                songTitle.textContent = getSongTitle(songPath);
+                songAlbum.textContent = "Playlist Corrente"; // Testo statico definito nell'HTML
+                coverArt.src = "default-cover.png";
+                updateProgress(); // Imposta i tempi a 00:00
+             }
+
+
+            // Load song (audio and lyrics)
             function loadSong() {
                 const currentSong = songs[currentSongIndex];
                 audioPlayer.src = currentSong.src;
-                audioPlayer.load(); // Importante per caricare il nuovo src
+                 // Non chiamare audioPlayer.load() qui, il browser lo fa implicitamente con src
+                 // audioPlayer.load();
 
                 // Update active playlist item
                 const playlistItems = document.querySelectorAll('.playlist-item');
@@ -532,60 +600,23 @@
                     item.classList.toggle('active', index === currentSongIndex);
                 });
 
-                // Load song metadata and cover art using jsmediatags
-                loadMetadata(currentSong.src);
+                // Update display (Title, Album [statico], Cover [default])
+                songTitle.textContent = getSongTitle(currentSong.src);
+                songAlbum.textContent = "Playlist Corrente"; // Testo statico
+                coverArt.src = "default-cover.png"; // Sempre default cover
 
                 // Load lyrics
                 loadLyrics();
+
+                // Reset progress bar and time until metadata is loaded
+                progress.style.width = '0%';
+                currentTimeEl.textContent = "00:00";
+                totalTimeEl.textContent = "00:00";
             }
 
-            // Load song metadata and cover art using jsmediatags
-            function loadMetadata(songPath) {
-                // Reset to defaults before trying to read tags
-                songTitle.textContent = getSongTitle(songPath); // Usa il nome file come default iniziale
-                songAlbum.textContent = "Album sconosciuto";
-                coverArt.src = "default-cover.png"; // Usa la copertina di default iniziale
+            // --- Funzione loadMetadata rimossa perché non usiamo ID3 ---
 
-                // Check if jsmediatags is available
-                if (!jsmediatags) {
-                    console.warn("Libreria jsmediatags non trovata.");
-                    return; // Esce se la libreria non è caricata
-                }
-
-                jsmediatags.read(songPath, {
-                    onSuccess: function(tag) {
-                        console.log("Tag ID3 letti per:", songPath, tag);
-                        const tags = tag.tags;
-
-                        // Update song info (con fallback al nome file se il tag manca)
-                        songTitle.textContent = tags.title || getSongTitle(songPath);
-                        songAlbum.textContent = tags.album || "Album sconosciuto";
-
-                        // Get cover art from ID3 tag
-                        if (tags.picture) {
-                            try {
-                                const picture = tags.picture;
-                                const base64String = arrayBufferToBase64(picture.data);
-                                coverArt.src = `data:${picture.format};base64,${base64String}`;
-                                console.log("Copertina caricata da ID3 tag.");
-                            } catch(e) {
-                                console.error("Errore nella conversione della copertina:", e);
-                                coverArt.src = "default-cover.png"; // Fallback in caso di errore conversione
-                            }
-                        } else {
-                            coverArt.src = "default-cover.png"; // Fallback se non c'è il tag picture
-                            console.log("Nessun tag 'picture' trovato, uso default cover.");
-                        }
-                    },
-                    onError: function(error) {
-                        console.error('Errore nella lettura dei tag ID3 per:', songPath, error.type, error.info);
-                        // Mantiene i valori di default (titolo da filename, album sconosciuto, cover default)
-                        // che sono già stati impostati all'inizio della funzione loadMetadata.
-                    }
-                });
-            }
-
-            // Convert array buffer to base64 string (for cover art)
+            // Convert array buffer to base64 string (non più usata per cover)
             function arrayBufferToBase64(buffer) {
                 let binary = '';
                 const bytes = new Uint8Array(buffer);
@@ -598,11 +629,14 @@
 
             // Load lyrics
             function loadLyrics() {
-                const lyricsPath = songs[currentSongIndex].lyrics;
-                if (!lyricsPath) {
+                // Resetta il contenuto precedente
+                lyricsContent.textContent = "Caricamento testo...";
+                const currentSong = songs[currentSongIndex];
+                if (!currentSong || !currentSong.lyrics) {
                     lyricsContent.textContent = "Testo non disponibile per questa canzone.";
                     return;
                 }
+                const lyricsPath = currentSong.lyrics;
 
                 fetch(lyricsPath)
                     .then(response => {
@@ -620,73 +654,81 @@
                     });
             }
 
-            // Play/pause function
-            function playPause() {
-                if (!audioPlayer.src && songs.length > 0) {
-                     // Se non c'è sorgente caricata ma ci sono canzoni, carica la prima
-                    currentSongIndex = 0;
-                    loadSong();
-                    // Non chiamare playPause() ricorsivamente qui, lascia che il click successivo lo faccia
-                    return; // Esce per permettere il caricamento
-                }
-
+            // Function to handle playing audio, including browser restrictions
+            function playAudio() {
                 if (!audioPlayer.src) {
-                    console.warn("Nessuna canzone da riprodurre.");
-                    return; // Nessuna sorgente audio valida
+                    console.warn("Nessuna sorgente audio caricata.");
+                    return;
                 }
-
-                if (isPlaying) {
-                    audioPlayer.pause();
-                } else {
-                    // Usa una Promise per gestire l'autoplay bloccato dai browser
+                 // Check if context is suspended (common issue after page load)
+                if (audioPlayer.paused) {
                     const playPromise = audioPlayer.play();
                     if (playPromise !== undefined) {
                         playPromise.then(_ => {
-                            // Playback started
+                            // Playback started successfully
+                            console.log("Audio playback started.");
                         }).catch(error => {
-                            // Auto-play was prevented
-                            console.error("Riproduzione automatica bloccata:", error);
-                            // Potresti voler mostrare un messaggio all'utente qui
-                            // Reset dello stato perché il play non è partito
+                            // Auto-play was prevented or another error occurred
+                            console.error("Errore durante play():", error);
+                            // Reset state as playback didn't start
                             isPlaying = false;
                             playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                            // Inform user? Maybe a message like "Click play to start"
                         });
                     }
                 }
-                 // Aggiorna lo stato *dopo* aver chiamato play/pause
-                // Nota: Lo stato isPlaying verrà aggiornato correttamente dagli eventi 'play' e 'pause'
             }
 
-            // Play previous song
+            // Function to handle pausing audio
+            function pauseAudio() {
+                audioPlayer.pause();
+            }
+
+            // Toggle play/pause button action
+            function playPause() {
+                // If no song is loaded yet, load the first one and try to play
+                 if (!audioPlayer.src && songs.length > 0) {
+                    currentSongIndex = 0;
+                    loadSong();
+                    // Don't auto-play here, let the next click handle it
+                    // or rely on the 'canplay' event if needed
+                    return;
+                }
+
+                if (isPlaying) {
+                    pauseAudio();
+                } else {
+                    playAudio();
+                }
+                // State (isPlaying, button icon) is updated by 'play' and 'pause' event listeners
+            }
+
+
+             // Play previous song
             function playPrevious() {
                 if (songs.length === 0) return;
+                const wasPlaying = isPlaying; // Store previous state
                 currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
                 loadSong();
-                 // Se stava suonando, continua a suonare la nuova traccia
-                if (isPlaying) {
-                     // Attendiamo che 'canplay' sia triggerato da loadSong prima di chiamare play
-                     // Lo gestiamo negli event listener
+                if (wasPlaying) {
+                    // Wait for 'canplay' to trigger playAudio via event listener
                 } else {
-                    // Se era in pausa, aggiorna solo l'icona e aspetta l'azione dell'utente
-                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                     playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                 }
             }
 
             // Play next song
             function playNext() {
                 if (songs.length === 0) return;
+                const wasPlaying = isPlaying; // Store previous state
                 currentSongIndex = (currentSongIndex + 1) % songs.length;
                 loadSong();
-                 // Se stava suonando, continua a suonare la nuova traccia
-                if (isPlaying) {
-                     // Attendiamo che 'canplay' sia triggerato da loadSong prima di chiamare play
-                     // Lo gestiamo negli event listener
-                } else {
-                    // Se era in pausa, aggiorna solo l'icona e aspetta l'azione dell'utente
+                 if (wasPlaying) {
+                     // Wait for 'canplay' to trigger playAudio via event listener
+                 } else {
                     playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                }
+                 }
             }
-
 
             // Update progress bar
             function updateProgress() {
@@ -694,15 +736,11 @@
                 const currentTime = audioPlayer.currentTime;
 
                 if (!isNaN(duration) && duration > 0) {
-                    // Update progress bar
                     const progressPercent = (currentTime / duration) * 100;
                     progress.style.width = `${progressPercent}%`;
-
-                    // Update time display
                     currentTimeEl.textContent = formatTime(currentTime);
                     totalTimeEl.textContent = formatTime(duration);
                 } else {
-                    // Reset se la durata non è valida (es. prima del caricamento)
                     progress.style.width = '0%';
                     currentTimeEl.textContent = "00:00";
                     totalTimeEl.textContent = "00:00";
@@ -727,7 +765,7 @@
                 }
             }
 
-            // Update volume icon based on volume level
+            // Update volume icon based on volume level and muted state
             function updateVolumeIcon() {
                 const volume = audioPlayer.volume;
                 const muted = audioPlayer.muted;
@@ -757,6 +795,9 @@
                 lyricsVisible = !lyricsVisible;
                 lyricsSection.style.display = lyricsVisible ? 'block' : 'none';
                 lyricsBtn.textContent = lyricsVisible ? 'Nascondi testo' : 'Mostra testo';
+
+                // Force reflow/repaint if needed, although flexbox should handle it
+                 // window.dispatchEvent(new Event('resize'));
             }
 
             // Add all event listeners
@@ -769,12 +810,12 @@
                 // Progress bar
                 progressBar.addEventListener('click', setProgress);
                 audioPlayer.addEventListener('timeupdate', updateProgress);
-                audioPlayer.addEventListener('loadedmetadata', updateProgress); // Aggiorna tempo totale appena disponibile
+                audioPlayer.addEventListener('loadedmetadata', updateProgress); // Update total time when available
 
                 // Song end event
                 audioPlayer.addEventListener('ended', playNext);
 
-                // Play/Pause state changes
+                // Play/Pause state changes (update UI accordingly)
                 audioPlayer.addEventListener('play', () => {
                     isPlaying = true;
                     playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -786,16 +827,20 @@
 
                 // Volume control
                 volumeSlider.addEventListener('input', () => {
-                    audioPlayer.muted = false; // Se muove lo slider, rimuovi il muto
+                    audioPlayer.muted = false; // Unmute if user interacts with slider
                     audioPlayer.volume = volumeSlider.value;
-                    updateVolumeIcon();
+                    // updateVolumeIcon() is called by 'volumechange' event
                 });
+                 // Update icon when volume actually changes
+                audioPlayer.addEventListener('volumechange', updateVolumeIcon);
 
                 // Click volume icon to mute/unmute
                 volumeIcon.addEventListener('click', () => {
                     audioPlayer.muted = !audioPlayer.muted;
-                    volumeSlider.value = audioPlayer.muted ? 0 : audioPlayer.volume; // Imposta slider a 0 se muto
-                    updateVolumeIcon();
+                    // Slider value update is handled by 'volumechange' if needed,
+                    // or we can update it manually here:
+                    volumeSlider.value = audioPlayer.muted ? 0 : audioPlayer.volume;
+                    updateVolumeIcon(); // Update icon immediately
                 });
 
                 // Theme toggle
@@ -804,30 +849,24 @@
                 // Lyrics toggle
                 lyricsBtn.addEventListener('click', toggleLyrics);
 
-                // Evento 'canplay': utile per avviare la riproduzione dopo loadSong se era già in play
+                 // Evento 'canplay': update progress and potentially start play
                 audioPlayer.addEventListener('canplay', () => {
                     console.log("Audio can play:", audioPlayer.src);
-                    updateProgress(); // Assicura che il tempo totale sia aggiornato
-                    if (isPlaying) {
-                        const playPromise = audioPlayer.play();
-                         if (playPromise !== undefined) {
-                            playPromise.catch(error => {
-                                console.error("Errore nel riprendere la riproduzione:", error);
-                                // Potrebbe essere necessario reimpostare isPlaying a false se il play fallisce
-                                isPlaying = false;
-                                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                            });
-                        }
-                    }
+                    updateProgress(); // Update duration display
+                    // Auto-play if it was playing before nav (handled in playNext/Prev logic)
+                     // if (shouldBePlaying) playAudio(); // 'shouldBePlaying' needs managing
                 });
 
                 // Error handling for audio element
                 audioPlayer.addEventListener('error', (e) => {
                     console.error('Errore elemento Audio:', audioPlayer.error);
                     songTitle.textContent = "Errore caricamento traccia";
-                    songAlbum.textContent = "";
-                    coverArt.src = "default-cover.png";
-                    // Potresti voler passare alla traccia successiva o mostrare un messaggio più specifico
+                    songAlbum.textContent = ""; // Clear album text on error
+                    coverArt.src = "default-cover.png"; // Reset cover
+                    // Stop trying to play and reset button
+                    isPlaying = false;
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    updateProgress(); // Reset timers
                 });
             }
 
