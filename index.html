@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Includi jsmediatags per leggere ID3 -->
-    <script src="https://cdn.jsdelivr.net/npm/jsmediatags@3.9.5/dist/jsmediatags.min.js"></script>
     <style>
         :root {
             --primary-color: #6366f1;
@@ -324,22 +322,31 @@
             flex: 1;
         }
 
+        /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             .content-container {
                 flex-direction: column;
             }
+            
             .lyrics-section {
                 border-left: none;
                 border-top: 1px solid var(--border-color);
             }
-            .player-section, .lyrics-section {
+            
+            .player-section {
                 min-width: 100%;
             }
+            
+            .lyrics-section {
+                min-width: 100%;
+            }
+            
             .playlist-item {
                 padding: 12px;
             }
         }
 
+        /* Scroll bar styling */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -386,9 +393,15 @@
                         </div>
                     </div>
                     <div class="controls">
-                        <button class="control-btn" id="prevBtn"><i class="fas fa-step-backward"></i></button>
-                        <button class="control-btn large" id="playPauseBtn"><i class="fas fa-play"></i></button>
-                        <button class="control-btn" id="nextBtn"><i class="fas fa-step-forward"></i></button>
+                        <button class="control-btn" id="prevBtn">
+                            <i class="fas fa-step-backward"></i>
+                        </button>
+                        <button class="control-btn large" id="playPauseBtn">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="control-btn" id="nextBtn">
+                            <i class="fas fa-step-forward"></i>
+                        </button>
                     </div>
                     <div class="volume-container">
                         <i class="fas fa-volume-up volume-icon" id="volumeIcon"></i>
@@ -398,7 +411,9 @@
                 </div>
                 <div class="lyrics-section" id="lyricsSection">
                     <h3>Testo della canzone</h3>
-                    <div class="lyrics-content" id="lyricsContent">Seleziona una canzone per visualizzare il testo.</div>
+                    <div class="lyrics-content" id="lyricsContent">
+                        Seleziona una canzone per visualizzare il testo.
+                    </div>
                 </div>
             </div>
         </div>
@@ -410,10 +425,355 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Get DOM elements
             const audioPlayer = new Audio();
             const playPauseBtn = document.getElementById('playPauseBtn');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             const progressBar = document.getElementById('progressBar');
             const progress = document.getElementById('progress');
-            const currentTimeEl = document.get
+            const currentTimeEl = document.getElementById('currentTime');
+            const totalTimeEl = document.getElementById('totalTime');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeIcon = document.getElementById('volumeIcon');
+            const coverArt = document.getElementById('coverArt');
+            const songTitle = document.getElementById('songTitle');
+            const songAlbum = document.getElementById('songAlbum');
+            const playlist = document.getElementById('playlist');
+            const themeToggle = document.getElementById('themeToggle');
+            const lyricsBtn = document.getElementById('lyricsBtn');
+            const lyricsSection = document.getElementById('lyricsSection');
+            const lyricsContent = document.getElementById('lyricsContent');
+
+            // Playlist data
+            const songs = [
+                { src: 'audio/1 - Intro.mp3', lyrics: 'lyrics/1 - Intro.txt' },
+                { src: 'audio/2 - La Forza Gentile.mp3', lyrics: 'lyrics/2 - La Forza Gentile.txt' },
+                { src: 'audio/3 - Vineyard Driver.mp3', lyrics: 'lyrics/3 - Vineyard Driver.txt' },
+                { src: 'audio/4 - Giardino dei colori.mp3', lyrics: 'lyrics/4 - Giardino dei colori.txt' },
+                { src: "audio/5 - L'imbianchino e il campione.mp3", lyrics: "lyrics/5 - L'imbianchino e il campione.txt" },
+                { src: "audio/6 - L'Alchimista dei Sensi.mp3", lyrics: "lyrics/6 - L'Alchimista dei Sensi.txt" },
+                { src: 'audio/7 - Digital Renaissance Man.mp3', lyrics: 'lyrics/7 - Digital Renaissance Man.txt' },
+                { src: 'audio/8 - Gustanti Viaggiatori.mp3', lyrics: 'lyrics/8 - Gustanti Viaggiatori.txt' }
+            ];
+
+            let currentSongIndex = 0;
+            let isPlaying = false;
+            let lyricsVisible = false;
+
+            // Initialize player
+            function init() {
+                // Create playlist items
+                songs.forEach((song, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'playlist-item';
+                    li.innerHTML = `
+                        <span class="playlist-item-number">${index + 1}</span>
+                        <span class="playlist-item-title">${getSongTitle(song.src)}</span>
+                    `;
+                    li.addEventListener('click', () => {
+                        currentSongIndex = index;
+                        loadSong();
+                        playPause();
+                    });
+                    playlist.appendChild(li);
+                });
+
+                // Set initial volume
+                audioPlayer.volume = volumeSlider.value;
+
+                // Check for saved theme
+                try {
+                    if (localStorage.getItem('theme') === 'dark') {
+                        document.body.classList.add('dark-theme');
+                        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    }
+                } catch (error) {
+                    console.log('localStorage non disponibile:', error);
+                }
+
+                // Add event listeners
+                addEventListeners();
+            }
+
+            // Extract song title from file path
+            function getSongTitle(src) {
+                const filename = src.split('/').pop();
+                return filename.replace('.mp3', '');
+            }
+
+            // Load song
+            function loadSong() {
+                const currentSong = songs[currentSongIndex];
+                audioPlayer.src = currentSong.src;
+                audioPlayer.load();
+                
+                // Update active playlist item
+                const playlistItems = document.querySelectorAll('.playlist-item');
+                playlistItems.forEach((item, index) => {
+                    if (index === currentSongIndex) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
+                // Load song metadata and cover art
+                loadMetadata();
+                
+                // Load lyrics
+                loadLyrics();
+            }
+
+            // Load song metadata and cover art
+            function loadMetadata() {
+                const songPath = songs[currentSongIndex].src;
+                
+                // Estrai titolo dal nome del file
+                const fileName = getSongTitle(songPath);
+                songTitle.textContent = fileName;
+                songAlbum.textContent = "Album sconosciuto";
+                coverArt.src = "default-cover.png";
+                
+                // Nota: lettura ID3 tag disabilitata per problemi di compatibilità
+                // In un ambiente di produzione, bisognerebbe implementare 
+                // una soluzione server-side per estrarre questi dati
+            }
+            
+            // Read ID3 tags using jsmediatags
+            function readTags(songPath) {
+                window.jsmediatags.read(songPath, {
+                    onSuccess: function(tag) {
+                        const tags = tag.tags;
+                        
+                        // Update song info
+                        if (tags.title) {
+                            songTitle.textContent = tags.title;
+                        } else {
+                            songTitle.textContent = getSongTitle(songPath);
+                        }
+                        
+                        if (tags.album) {
+                            songAlbum.textContent = tags.album;
+                        } else {
+                            songAlbum.textContent = "Album sconosciuto";
+                        }
+                        
+                        // Get cover art from ID3 tag
+                        if (tags.picture) {
+                            const picture = tags.picture;
+                            const base64String = arrayBufferToBase64(picture.data);
+                            coverArt.src = `data:${picture.format};base64,${base64String}`;
+                        } else {
+                            coverArt.src = "default-cover.png";
+                        }
+                    },
+                    onError: function(error) {
+                        console.error('Error reading ID3 tags:', error);
+                        songTitle.textContent = getSongTitle(songPath);
+                        songAlbum.textContent = "Album sconosciuto";
+                        coverArt.src = "default-cover.png";
+                    }
+                });
+            }
+            
+            // Convert array buffer to base64 string (for cover art)
+            function arrayBufferToBase64(buffer) {
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                for (let i = 0; i < bytes.byteLength; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return window.btoa(binary);
+            }
+
+            // Load lyrics
+            function loadLyrics() {
+                const lyricsPath = songs[currentSongIndex].lyrics;
+                
+                fetch(lyricsPath)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Testo non disponibile');
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        lyricsContent.textContent = text;
+                    })
+                    .catch(error => {
+                        lyricsContent.textContent = "Testo non disponibile per questa canzone.";
+                        console.error('Error loading lyrics:', error);
+                    });
+            }
+
+            // Play/pause function
+            function playPause() {
+                if (audioPlayer.src) {
+                    if (isPlaying) {
+                        audioPlayer.pause();
+                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        isPlaying = false;
+                    } else {
+                        audioPlayer.play();
+                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                        isPlaying = true;
+                    }
+                } else {
+                    // If no song is loaded, load the first one
+                    currentSongIndex = 0;
+                    loadSong();
+                    playPause();
+                }
+            }
+
+            // Play previous song
+            function playPrevious() {
+                currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+                loadSong();
+                if (isPlaying) {
+                    audioPlayer.play();
+                }
+            }
+
+            // Play next song
+            function playNext() {
+                currentSongIndex = (currentSongIndex + 1) % songs.length;
+                loadSong();
+                if (isPlaying) {
+                    audioPlayer.play();
+                }
+            }
+
+            // Update progress bar
+            function updateProgress() {
+                const duration = audioPlayer.duration;
+                const currentTime = audioPlayer.currentTime;
+                
+                if (duration) {
+                    // Update progress bar
+                    const progressPercent = (currentTime / duration) * 100;
+                    progress.style.width = `${progressPercent}%`;
+                    
+                    // Update time display
+                    currentTimeEl.textContent = formatTime(currentTime);
+                    totalTimeEl.textContent = formatTime(duration);
+                } else {
+                    currentTimeEl.textContent = "00:00";
+                    totalTimeEl.textContent = "00:00";
+                }
+            }
+
+            // Format time in mm:ss
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // Set progress when clicking on progress bar
+            function setProgress(e) {
+                const width = progressBar.clientWidth;
+                const clickPosition = e.offsetX;
+                const duration = audioPlayer.duration;
+                
+                if (duration) {
+                    audioPlayer.currentTime = (clickPosition / width) * duration;
+                }
+            }
+
+            // Update volume icon based on volume level
+            function updateVolumeIcon() {
+                const volume = audioPlayer.volume;
+                
+                if (volume === 0) {
+                    volumeIcon.className = 'fas fa-volume-mute volume-icon';
+                } else if (volume < 0.5) {
+                    volumeIcon.className = 'fas fa-volume-down volume-icon';
+                } else {
+                    volumeIcon.className = 'fas fa-volume-up volume-icon';
+                }
+            }
+
+            // Toggle theme
+            function toggleTheme() {
+                if (document.body.classList.contains('dark-theme')) {
+                    document.body.classList.remove('dark-theme');
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    try {
+                        localStorage.setItem('theme', 'light');
+                    } catch (error) {
+                        console.log('localStorage non disponibile:', error);
+                    }
+                } else {
+                    document.body.classList.add('dark-theme');
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    try {
+                        localStorage.setItem('theme', 'dark');
+                    } catch (error) {
+                        console.log('localStorage non disponibile:', error);
+                    }
+                }
+            }
+
+            // Toggle lyrics panel
+            function toggleLyrics() {
+                if (lyricsVisible) {
+                    lyricsSection.style.display = 'none';
+                    lyricsBtn.textContent = 'Mostra testo';
+                    lyricsVisible = false;
+                } else {
+                    lyricsSection.style.display = 'block';
+                    lyricsBtn.textContent = 'Nascondi testo';
+                    lyricsVisible = true;
+                }
+            }
+
+            // Add all event listeners
+            function addEventListeners() {
+                // Player controls
+                playPauseBtn.addEventListener('click', playPause);
+                prevBtn.addEventListener('click', playPrevious);
+                nextBtn.addEventListener('click', playNext);
+                
+                // Progress bar
+                progressBar.addEventListener('click', setProgress);
+                audioPlayer.addEventListener('timeupdate', updateProgress);
+                
+                // Song end event
+                audioPlayer.addEventListener('ended', playNext);
+                
+                // Volume control
+                volumeSlider.addEventListener('input', () => {
+                    audioPlayer.volume = volumeSlider.value;
+                    updateVolumeIcon();
+                });
+                
+                // Click volume icon to mute/unmute
+                volumeIcon.addEventListener('click', () => {
+                    if (audioPlayer.volume > 0) {
+                        audioPlayer.volume = 0;
+                    } else {
+                        audioPlayer.volume = volumeSlider.value || 0.7;
+                    }
+                    updateVolumeIcon();
+                });
+                
+                // Theme toggle
+                themeToggle.addEventListener('click', toggleTheme);
+                
+                // Lyrics toggle
+                lyricsBtn.addEventListener('click', toggleLyrics);
+                
+                // Load metadata when song can play
+                audioPlayer.addEventListener('canplay', () => {
+                    updateProgress();
+                });
+            }
+
+            // Initialize player
+            init();
+        });
+    </script>
+</body>
+</html>
