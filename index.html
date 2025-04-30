@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inclusione della libreria jsmediatags -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.8/jsmediatags.min.js"></script>
     <style>
+        /* ... (TUTTO IL CSS RIMANE INVARIATO) ... */
         :root {
             --primary-color: #6366f1;
             --secondary-color: #818cf8;
@@ -327,20 +330,20 @@
             .content-container {
                 flex-direction: column;
             }
-            
+
             .lyrics-section {
                 border-left: none;
                 border-top: 1px solid var(--border-color);
             }
-            
+
             .player-section {
                 min-width: 100%;
             }
-            
+
             .lyrics-section {
                 min-width: 100%;
             }
-            
+
             .playlist-item {
                 padding: 12px;
             }
@@ -461,6 +464,9 @@
             let isPlaying = false;
             let lyricsVisible = false;
 
+            // Reference to jsmediatags library (loaded globally)
+            const jsmediatags = window.jsmediatags;
+
             // Initialize player
             function init() {
                 // Create playlist items
@@ -494,94 +500,97 @@
 
                 // Add event listeners
                 addEventListeners();
+
+                // Load initial metadata for the first song (or placeholder)
+                if (songs.length > 0) {
+                    loadMetadata(songs[0].src); // Carica metadati iniziali senza avviare la canzone
+                }
             }
 
-            // Extract song title from file path
+            // Extract song title from file path (fallback)
             function getSongTitle(src) {
-                const filename = src.split('/').pop();
-                return filename.replace('.mp3', '');
+                try {
+                    const filename = src.split('/').pop();
+                    // Decodifica eventuali caratteri speciali nel nome file (es. %20 per spazio)
+                    const decodedFilename = decodeURIComponent(filename);
+                    return decodedFilename.replace('.mp3', '');
+                } catch (e) {
+                    console.error("Errore nell'estrarre il nome del file:", e);
+                    return "Traccia sconosciuta";
+                }
             }
 
             // Load song
             function loadSong() {
                 const currentSong = songs[currentSongIndex];
                 audioPlayer.src = currentSong.src;
-                audioPlayer.load();
-                
+                audioPlayer.load(); // Importante per caricare il nuovo src
+
                 // Update active playlist item
                 const playlistItems = document.querySelectorAll('.playlist-item');
                 playlistItems.forEach((item, index) => {
-                    if (index === currentSongIndex) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
+                    item.classList.toggle('active', index === currentSongIndex);
                 });
 
-                // Load song metadata and cover art
-                loadMetadata();
-                
+                // Load song metadata and cover art using jsmediatags
+                loadMetadata(currentSong.src);
+
                 // Load lyrics
                 loadLyrics();
             }
 
-            // Load song metadata and cover art
-            function loadMetadata() {
-                const songPath = songs[currentSongIndex].src;
-                
-                // Estrai titolo dal nome del file
-                const fileName = getSongTitle(songPath);
-                songTitle.textContent = fileName;
+            // Load song metadata and cover art using jsmediatags
+            function loadMetadata(songPath) {
+                // Reset to defaults before trying to read tags
+                songTitle.textContent = getSongTitle(songPath); // Usa il nome file come default iniziale
                 songAlbum.textContent = "Album sconosciuto";
-                coverArt.src = "default-cover.png";
-                
-                // Nota: lettura ID3 tag disabilitata per problemi di compatibilità
-                // In un ambiente di produzione, bisognerebbe implementare 
-                // una soluzione server-side per estrarre questi dati
-            }
-            
-            // Read ID3 tags using jsmediatags
-            function readTags(songPath) {
-                window.jsmediatags.read(songPath, {
+                coverArt.src = "default-cover.png"; // Usa la copertina di default iniziale
+
+                // Check if jsmediatags is available
+                if (!jsmediatags) {
+                    console.warn("Libreria jsmediatags non trovata.");
+                    return; // Esce se la libreria non è caricata
+                }
+
+                jsmediatags.read(songPath, {
                     onSuccess: function(tag) {
+                        console.log("Tag ID3 letti per:", songPath, tag);
                         const tags = tag.tags;
-                        
-                        // Update song info
-                        if (tags.title) {
-                            songTitle.textContent = tags.title;
-                        } else {
-                            songTitle.textContent = getSongTitle(songPath);
-                        }
-                        
-                        if (tags.album) {
-                            songAlbum.textContent = tags.album;
-                        } else {
-                            songAlbum.textContent = "Album sconosciuto";
-                        }
-                        
+
+                        // Update song info (con fallback al nome file se il tag manca)
+                        songTitle.textContent = tags.title || getSongTitle(songPath);
+                        songAlbum.textContent = tags.album || "Album sconosciuto";
+
                         // Get cover art from ID3 tag
                         if (tags.picture) {
-                            const picture = tags.picture;
-                            const base64String = arrayBufferToBase64(picture.data);
-                            coverArt.src = `data:${picture.format};base64,${base64String}`;
+                            try {
+                                const picture = tags.picture;
+                                const base64String = arrayBufferToBase64(picture.data);
+                                coverArt.src = `data:${picture.format};base64,${base64String}`;
+                                console.log("Copertina caricata da ID3 tag.");
+                            } catch(e) {
+                                console.error("Errore nella conversione della copertina:", e);
+                                coverArt.src = "default-cover.png"; // Fallback in caso di errore conversione
+                            }
                         } else {
-                            coverArt.src = "default-cover.png";
+                            coverArt.src = "default-cover.png"; // Fallback se non c'è il tag picture
+                            console.log("Nessun tag 'picture' trovato, uso default cover.");
                         }
                     },
                     onError: function(error) {
-                        console.error('Error reading ID3 tags:', error);
-                        songTitle.textContent = getSongTitle(songPath);
-                        songAlbum.textContent = "Album sconosciuto";
-                        coverArt.src = "default-cover.png";
+                        console.error('Errore nella lettura dei tag ID3 per:', songPath, error.type, error.info);
+                        // Mantiene i valori di default (titolo da filename, album sconosciuto, cover default)
+                        // che sono già stati impostati all'inizio della funzione loadMetadata.
                     }
                 });
             }
-            
+
             // Convert array buffer to base64 string (for cover art)
             function arrayBufferToBase64(buffer) {
                 let binary = '';
                 const bytes = new Uint8Array(buffer);
-                for (let i = 0; i < bytes.byteLength; i++) {
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
                     binary += String.fromCharCode(bytes[i]);
                 }
                 return window.btoa(binary);
@@ -590,11 +599,15 @@
             // Load lyrics
             function loadLyrics() {
                 const lyricsPath = songs[currentSongIndex].lyrics;
-                
+                if (!lyricsPath) {
+                    lyricsContent.textContent = "Testo non disponibile per questa canzone.";
+                    return;
+                }
+
                 fetch(lyricsPath)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Testo non disponibile');
+                            throw new Error(`File non trovato o errore: ${response.statusText}`);
                         }
                         return response.text();
                     })
@@ -603,62 +616,94 @@
                     })
                     .catch(error => {
                         lyricsContent.textContent = "Testo non disponibile per questa canzone.";
-                        console.error('Error loading lyrics:', error);
+                        console.error('Errore nel caricamento del testo:', error);
                     });
             }
 
             // Play/pause function
             function playPause() {
-                if (audioPlayer.src) {
-                    if (isPlaying) {
-                        audioPlayer.pause();
-                        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-                        isPlaying = false;
-                    } else {
-                        audioPlayer.play();
-                        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-                        isPlaying = true;
-                    }
-                } else {
-                    // If no song is loaded, load the first one
+                if (!audioPlayer.src && songs.length > 0) {
+                     // Se non c'è sorgente caricata ma ci sono canzoni, carica la prima
                     currentSongIndex = 0;
                     loadSong();
-                    playPause();
+                    // Non chiamare playPause() ricorsivamente qui, lascia che il click successivo lo faccia
+                    return; // Esce per permettere il caricamento
                 }
+
+                if (!audioPlayer.src) {
+                    console.warn("Nessuna canzone da riprodurre.");
+                    return; // Nessuna sorgente audio valida
+                }
+
+                if (isPlaying) {
+                    audioPlayer.pause();
+                } else {
+                    // Usa una Promise per gestire l'autoplay bloccato dai browser
+                    const playPromise = audioPlayer.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(_ => {
+                            // Playback started
+                        }).catch(error => {
+                            // Auto-play was prevented
+                            console.error("Riproduzione automatica bloccata:", error);
+                            // Potresti voler mostrare un messaggio all'utente qui
+                            // Reset dello stato perché il play non è partito
+                            isPlaying = false;
+                            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        });
+                    }
+                }
+                 // Aggiorna lo stato *dopo* aver chiamato play/pause
+                // Nota: Lo stato isPlaying verrà aggiornato correttamente dagli eventi 'play' e 'pause'
             }
 
             // Play previous song
             function playPrevious() {
+                if (songs.length === 0) return;
                 currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
                 loadSong();
+                 // Se stava suonando, continua a suonare la nuova traccia
                 if (isPlaying) {
-                    audioPlayer.play();
+                     // Attendiamo che 'canplay' sia triggerato da loadSong prima di chiamare play
+                     // Lo gestiamo negli event listener
+                } else {
+                    // Se era in pausa, aggiorna solo l'icona e aspetta l'azione dell'utente
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                 }
             }
 
             // Play next song
             function playNext() {
+                if (songs.length === 0) return;
                 currentSongIndex = (currentSongIndex + 1) % songs.length;
                 loadSong();
+                 // Se stava suonando, continua a suonare la nuova traccia
                 if (isPlaying) {
-                    audioPlayer.play();
+                     // Attendiamo che 'canplay' sia triggerato da loadSong prima di chiamare play
+                     // Lo gestiamo negli event listener
+                } else {
+                    // Se era in pausa, aggiorna solo l'icona e aspetta l'azione dell'utente
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                 }
             }
+
 
             // Update progress bar
             function updateProgress() {
                 const duration = audioPlayer.duration;
                 const currentTime = audioPlayer.currentTime;
-                
-                if (duration) {
+
+                if (!isNaN(duration) && duration > 0) {
                     // Update progress bar
                     const progressPercent = (currentTime / duration) * 100;
                     progress.style.width = `${progressPercent}%`;
-                    
+
                     // Update time display
                     currentTimeEl.textContent = formatTime(currentTime);
                     totalTimeEl.textContent = formatTime(duration);
                 } else {
+                    // Reset se la durata non è valida (es. prima del caricamento)
+                    progress.style.width = '0%';
                     currentTimeEl.textContent = "00:00";
                     totalTimeEl.textContent = "00:00";
                 }
@@ -676,8 +721,8 @@
                 const width = progressBar.clientWidth;
                 const clickPosition = e.offsetX;
                 const duration = audioPlayer.duration;
-                
-                if (duration) {
+
+                if (!isNaN(duration) && duration > 0) {
                     audioPlayer.currentTime = (clickPosition / width) * duration;
                 }
             }
@@ -685,8 +730,9 @@
             // Update volume icon based on volume level
             function updateVolumeIcon() {
                 const volume = audioPlayer.volume;
-                
-                if (volume === 0) {
+                const muted = audioPlayer.muted;
+
+                if (muted || volume === 0) {
                     volumeIcon.className = 'fas fa-volume-mute volume-icon';
                 } else if (volume < 0.5) {
                     volumeIcon.className = 'fas fa-volume-down volume-icon';
@@ -697,36 +743,20 @@
 
             // Toggle theme
             function toggleTheme() {
-                if (document.body.classList.contains('dark-theme')) {
-                    document.body.classList.remove('dark-theme');
-                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-                    try {
-                        localStorage.setItem('theme', 'light');
-                    } catch (error) {
-                        console.log('localStorage non disponibile:', error);
-                    }
-                } else {
-                    document.body.classList.add('dark-theme');
-                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-                    try {
-                        localStorage.setItem('theme', 'dark');
-                    } catch (error) {
-                        console.log('localStorage non disponibile:', error);
-                    }
+                const isDark = document.body.classList.toggle('dark-theme');
+                themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                try {
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                } catch (error) {
+                    console.log('localStorage non disponibile:', error);
                 }
             }
 
             // Toggle lyrics panel
             function toggleLyrics() {
-                if (lyricsVisible) {
-                    lyricsSection.style.display = 'none';
-                    lyricsBtn.textContent = 'Mostra testo';
-                    lyricsVisible = false;
-                } else {
-                    lyricsSection.style.display = 'block';
-                    lyricsBtn.textContent = 'Nascondi testo';
-                    lyricsVisible = true;
-                }
+                lyricsVisible = !lyricsVisible;
+                lyricsSection.style.display = lyricsVisible ? 'block' : 'none';
+                lyricsBtn.textContent = lyricsVisible ? 'Nascondi testo' : 'Mostra testo';
             }
 
             // Add all event listeners
@@ -735,39 +765,69 @@
                 playPauseBtn.addEventListener('click', playPause);
                 prevBtn.addEventListener('click', playPrevious);
                 nextBtn.addEventListener('click', playNext);
-                
+
                 // Progress bar
                 progressBar.addEventListener('click', setProgress);
                 audioPlayer.addEventListener('timeupdate', updateProgress);
-                
+                audioPlayer.addEventListener('loadedmetadata', updateProgress); // Aggiorna tempo totale appena disponibile
+
                 // Song end event
                 audioPlayer.addEventListener('ended', playNext);
-                
+
+                // Play/Pause state changes
+                audioPlayer.addEventListener('play', () => {
+                    isPlaying = true;
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                });
+                audioPlayer.addEventListener('pause', () => {
+                    isPlaying = false;
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                });
+
                 // Volume control
                 volumeSlider.addEventListener('input', () => {
+                    audioPlayer.muted = false; // Se muove lo slider, rimuovi il muto
                     audioPlayer.volume = volumeSlider.value;
                     updateVolumeIcon();
                 });
-                
+
                 // Click volume icon to mute/unmute
                 volumeIcon.addEventListener('click', () => {
-                    if (audioPlayer.volume > 0) {
-                        audioPlayer.volume = 0;
-                    } else {
-                        audioPlayer.volume = volumeSlider.value || 0.7;
-                    }
+                    audioPlayer.muted = !audioPlayer.muted;
+                    volumeSlider.value = audioPlayer.muted ? 0 : audioPlayer.volume; // Imposta slider a 0 se muto
                     updateVolumeIcon();
                 });
-                
+
                 // Theme toggle
                 themeToggle.addEventListener('click', toggleTheme);
-                
+
                 // Lyrics toggle
                 lyricsBtn.addEventListener('click', toggleLyrics);
-                
-                // Load metadata when song can play
+
+                // Evento 'canplay': utile per avviare la riproduzione dopo loadSong se era già in play
                 audioPlayer.addEventListener('canplay', () => {
-                    updateProgress();
+                    console.log("Audio can play:", audioPlayer.src);
+                    updateProgress(); // Assicura che il tempo totale sia aggiornato
+                    if (isPlaying) {
+                        const playPromise = audioPlayer.play();
+                         if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.error("Errore nel riprendere la riproduzione:", error);
+                                // Potrebbe essere necessario reimpostare isPlaying a false se il play fallisce
+                                isPlaying = false;
+                                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                            });
+                        }
+                    }
+                });
+
+                // Error handling for audio element
+                audioPlayer.addEventListener('error', (e) => {
+                    console.error('Errore elemento Audio:', audioPlayer.error);
+                    songTitle.textContent = "Errore caricamento traccia";
+                    songAlbum.textContent = "";
+                    coverArt.src = "default-cover.png";
+                    // Potresti voler passare alla traccia successiva o mostrare un messaggio più specifico
                 });
             }
 
